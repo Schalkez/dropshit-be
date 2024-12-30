@@ -1,0 +1,193 @@
+server {
+
+    root /var/www/html/topvc/dist/;
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+    server_name cms.dangky-topcv.info;
+    location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ /index.html =404;
+    }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/cms.dangky-topcv.info/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/cms.dangky-topcv.info/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+
+    root /var/www/html/topvc/topcov/;
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+    server_name dangky-topcv.info;
+    location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ /index.html =404;
+    }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/dangky-topcv.info/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dangky-topcv.info/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server { server_name testtopvc.stanley-druckenmiller.com;
+ location / { proxy_pass http://localhost:8080/;
+     proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;  # This line.
+        proxy_connect_timeout   1000;
+        proxy_send_timeout      1500;
+        proxy_read_timeout      2000;
+
+ }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/testtopvc.stanley-druckenmiller.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/testtopvc.stanley-druckenmiller.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+
+
+server { server_name api.btc-mining.net;
+ location / { proxy_pass http://localhost:1234/; }
+}
+
+
+server {
+    root /var/www/html/meme/dist;
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+    server_name admin.development-opportunities.com;
+    location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ /index.html =404;
+    }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/admin.development-opportunities.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/admin.development-opportunities.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+
+server { server_name api.development-opportunities.com;
+ location / { proxy_pass http://localhost:8000/; } 
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/api.development-opportunities.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/api.development-opportunities.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+
+
+server {
+    root /var/www/html/meme/meme;
+    # Add index.php to the list if you are using PHP
+    index index.html index.htm index.nginx-debian.html;
+    server_name development-opportunities.com;
+    location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ /index.html =404;
+    }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/development-opportunities.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/development-opportunities.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = development-opportunities.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name development-opportunities.com;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}
+server {
+    if ($host = api.development-opportunities.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80; server_name api.development-opportunities.com;
+    return 404; # managed by Certbot
+
+
+}
+server {
+    if ($host = admin.development-opportunities.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name admin.development-opportunities.com;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}
+
+
+server {
+    if ($host = dangky-topcv.info) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name dangky-topcv.info;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}server {
+    if ($host = cms.dangky-topcv.info) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name cms.dangky-topcv.info;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}
+server {
+    if ($host = testtopvc.stanley-druckenmiller.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+ server_name testtopvc.stanley-druckenmiller.com;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}

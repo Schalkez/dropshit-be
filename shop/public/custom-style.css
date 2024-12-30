@@ -1,0 +1,14 @@
+/*your custom css goes here*/
+
+.carousel-box {
+    box-shadow: 0 0 3px #cccc;
+    border-radius: 5px;
+}
+/*your custom css goes here*/
+.customer_fix {
+    position: fixed;
+    top: 30%;
+    right: 5%;
+    animation: eleShow 0.5s ease both;
+    flex-direction: column;
+}
