@@ -7,11 +7,11 @@ const dbURI = `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db
 
 console.log(dbURI);
 
-const options = {
+const options: mongoose.ConnectOptions = {
   autoIndex: true,
   minPoolSize: db.minPoolSize, // Maintain up to x socket connections
   maxPoolSize: db.maxPoolSize, // Maintain up to x socket connections
-  connectTimeoutMS: 60000, // Give up initial connection after x seconds
+  connectTimeoutMS: 120000, // Give up initial connection after x seconds
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
 };
 
