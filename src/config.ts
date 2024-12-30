@@ -16,8 +16,6 @@ export const db = {
   maxPoolSize: parseInt(process.env.DB_MAX_POOL_SIZE || "10"),
 };
 
-console.log(db);
-
 export const tokenInfo = {
   accessTokenValidity: parseInt(
     process.env.ACCESS_TOKEN_VALIDITY_SEC || "259200000"

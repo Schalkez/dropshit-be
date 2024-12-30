@@ -2,7 +2,10 @@ import mongoose from "mongoose";
 import { db } from "../config";
 
 // Build the connection string
-const dbURI = `mongodb://${db.host}:${db.port}/${db.name}`;
+// const dbURI = `mongodb://${db.host}:${db.port}/${db.name}`;
+const dbURI = `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
+
+console.log(dbURI);
 
 const options = {
   autoIndex: true,
