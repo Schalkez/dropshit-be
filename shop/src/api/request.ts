@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, AxiosInstance } from "axios";
 
-const baseURL = process.env.REACT_APP_API_URL + "/api";
+const baseURL = process.env.REACT_APP_API_URL;
 
 const createInstance = (): AxiosInstance => {
   const instance = axios.create({
@@ -13,7 +13,9 @@ const createInstance = (): AxiosInstance => {
 
   instance.interceptors.request.use(
     async (config) => {
-      const accessToken = JSON.parse(localStorage.getItem("tokens") as any)?.accessToken ;
+      const accessToken = JSON.parse(
+        localStorage.getItem("tokens") as any
+      )?.accessToken;
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
