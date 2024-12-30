@@ -7,7 +7,7 @@ export const port = process.env.PORT;
 export const timezone = process.env.TZ;
 
 export const db = {
-  name: process.env.DB_NAME || "",
+  name: process.env.DB_NAME || "AMAZON_DB",
   host: process.env.DB_HOST || "",
   port: process.env.DB_PORT || "",
   user: process.env.DB_USER || "",
