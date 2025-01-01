@@ -213,7 +213,7 @@ export const adminController = {
   }),
   addCategory: asyncHandler(async (req: any, res) => {
     const { name, img, parentCategoryId } = req.body;
-    console.log(parentCategoryId);
+
     if (parentCategoryId) {
       await CategoryModel.updateOne(
         { _id: parentCategoryId },
@@ -234,9 +234,11 @@ export const adminController = {
           },
         }
       );
+
+      return new SuccessMsgResponse("Success").send(res);
     }
 
-    const category = await CategoryModel.create({
+    await CategoryModel.create({
       img,
       name,
       tag: name.en
@@ -273,22 +275,36 @@ export const adminController = {
   }),
   deleteCategory: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
+    const subId = req.params.subId;
 
     const isValidId = mongoose.Types.ObjectId.isValid(id);
 
     if (!isValidId) {
       return new BadRequestResponse("ID_NOT_VALID").send(res);
     }
-
-    const category = await CategoryModel.findById(id);
-
-    if (!category) {
-      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
-        res
-      );
+    console.log(subId);
+    if (!subId) {
+      console.log(1);
+      await CategoryModel.deleteOne({ _id: id });
+      console.log(2);
+      return new SuccessMsgResponse("Success").send(res);
     }
 
-    await CategoryModel.deleteOne({ _id: id });
+    const isValidSubId = mongoose.Types.ObjectId.isValid(subId);
+
+    if (!isValidSubId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    await CategoryModel.updateOne(
+      { _id: id },
+      {
+        $pull: {
+          subCategories: { _id: subId },
+        },
+      }
+    );
+
     return new SuccessMsgResponse("Success").send(res);
   }),
 
