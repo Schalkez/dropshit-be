@@ -64,6 +64,7 @@ router.delete("/category/:id/:subId?", adminController.deleteCategory);
 
 router.post("/product", adminController.addProduct);
 router.get("/product", adminController.getProduct);
+router.get("/product/:id", adminController.getProductById);
 router.post("/product-delete", adminController.deleteProduct);
 
 router.post("/addEmployee", adminController.addEmployee);
