@@ -212,9 +212,33 @@ export const adminController = {
     return new SuccessResponse("Success", category).send(res);
   }),
   addCategory: asyncHandler(async (req: any, res) => {
-    const { name, img, slug, subCategories } = req.body;
+    const { name, img, parentCategoryId } = req.body;
 
-    const category = await CategoryModel.create({
+    if (parentCategoryId) {
+      await CategoryModel.updateOne(
+        { _id: parentCategoryId },
+        {
+          $push: {
+            subCategories: {
+              name,
+              tag: name.en
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/đ/g, "d")
+                .replace(/[^a-z0-9\s-]/g, "")
+                .trim()
+                .replace(/\s+/g, "-"),
+              img,
+            },
+          },
+        }
+      );
+
+      return new SuccessMsgResponse("Success").send(res);
+    }
+
+    await CategoryModel.create({
       img,
       name,
       tag: name.en
@@ -225,7 +249,7 @@ export const adminController = {
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-"),
-      subCategories,
+      subCategories: [],
     });
     return new SuccessMsgResponse("Success").send(res);
   }),
@@ -300,22 +324,36 @@ export const adminController = {
   }),
   deleteCategory: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
+    const subId = req.params.subId;
 
     const isValidId = mongoose.Types.ObjectId.isValid(id);
 
     if (!isValidId) {
       return new BadRequestResponse("ID_NOT_VALID").send(res);
     }
-
-    const category = await CategoryModel.findById(id);
-
-    if (!category) {
-      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
-        res
-      );
+    console.log(subId);
+    if (!subId) {
+      console.log(1);
+      await CategoryModel.deleteOne({ _id: id });
+      console.log(2);
+      return new SuccessMsgResponse("Success").send(res);
     }
 
-    await CategoryModel.deleteOne({ _id: id });
+    const isValidSubId = mongoose.Types.ObjectId.isValid(subId);
+
+    if (!isValidSubId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    await CategoryModel.updateOne(
+      { _id: id },
+      {
+        $pull: {
+          subCategories: { _id: subId },
+        },
+      }
+    );
+
     return new SuccessMsgResponse("Success").send(res);
   }),
 
