@@ -41,7 +41,6 @@ router.post("/add-virtual", UserControllers.addVirtualCustomer);
 router.get("/get-virtual", UserControllers.getVirtualCustomer);
 
 router.get("/category", adminController.getCategory);
-router.get("/branch", adminController.getBranch);
 
 router.post("/add-product", UserControllers.addProduct);
 router.get("/get-product-user", UserControllers.gteProductByUser);
