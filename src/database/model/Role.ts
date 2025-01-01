@@ -4,7 +4,7 @@ export const DOCUMENT_NAME = "Role";
 export const COLLECTION_NAME = "roles";
 
 export enum RoleCode {
-  CLIENT = "CLIENT",
+  CUSTOMER = "CUSTOMER",
   SUB_ADMIN = "SUB_ADMIN",
   EMPLOYEE = "EMPLOYEE",
   ADMIN = "ADMIN",
