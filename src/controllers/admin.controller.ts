@@ -91,6 +91,7 @@ export const adminController = {
     await MethodPaymentModel.findByIdAndDelete(req.params.id);
     return new SuccessMsgResponse("tt").send(res);
   }),
+
   getProduct: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 10;
@@ -100,34 +101,80 @@ export const adminController = {
       $or: [{ user: null }, { user: userId }],
     });
 
-    const products = await ProductModel.find({
-      $or: [{ user: null }, { user: userId }],
-    })
-      .populate("category branch")
+    const products = await ProductModel.find()
+      .populate("branch")
+      .populate("category")
+      .populate("sellers", "-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
+
+    products.map((product) => {
+      const category: any = product.category;
+      return category.subCategories.map((subCategory: any) => {
+        if (product.subCategory.equals(subCategory._id)) {
+          product.subCategory = subCategory;
+        }
+      });
+    });
+
     res.json({ total: totalCount, data: products });
+  }),
+  getProductById: asyncHandler(async (req: any, res) => {
+    const id = req.params.id;
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValidId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    const userId = "651ed18ed3c656cabc057998";
+
+    const totalCount = await ProductModel.countDocuments({
+      $or: [{ user: null }, { user: userId }],
+    });
+
+    const product = await ProductModel.findById(id)
+      .populate("branch")
+      .populate("category")
+      .populate("sellers", "-password")
+      .sort({ createdAt: -1 });
+
+    res.json(product);
   }),
   addProduct: asyncHandler(async (req: any, res) => {
     const {
       branch,
       category,
+      subCategory,
       description,
       images,
       price,
       quantity,
       user,
       name,
+      sellers,
     } = req.body;
+
+    const existCategory = await CategoryModel.findById(category);
+
+    if (!existCategory) {
+      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
+        res
+      );
+    }
+
     const data = await ProductModel.create({
       branch,
       category,
+      subCategory,
       description,
       images,
       price,
       quantity,
       user,
+      sellers,
       name,
     });
     return new SuccessMsgResponse("Success").send(res);

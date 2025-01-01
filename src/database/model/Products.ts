@@ -5,15 +5,15 @@ export const COLLECTION_NAME = "products";
 
 const schema = new Schema(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
-    },
-    employee: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
+    // user: {
+    //   type: Schema.Types.ObjectId,
+    //   required: true,
+    //   ref: "User",
+    // },
+    // employee: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "User",
+    // },
     name: {
       type: Schema.Types.String,
     },
@@ -32,11 +32,7 @@ const schema = new Schema(
     },
     quantity: {
       type: Schema.Types.Number,
-      default: 0,
-    },
-    category: {
-      type: Schema.Types.String,
-      required: true,
+      default: 4999,
     },
     branch: {
       type: Schema.Types.ObjectId,
@@ -47,6 +43,22 @@ const schema = new Schema(
       type: Schema.Types.Boolean,
       default: true,
     },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+    subCategory: {
+      type: Schema.Types.ObjectId,
+      ref: "subCategory",
+      required: true,
+    },
+    sellers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
