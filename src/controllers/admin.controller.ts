@@ -20,6 +20,8 @@ import { RoleModel } from "../database/model/Role";
 import { PackageModel } from "../database/model/Package";
 import { MethodPaymentModel } from "../database/model/MethodPayment";
 import { ConfigModel } from "../database/model/Config";
+import { categoryErrors } from "../constants/errors/category.error";
+import mongoose from "mongoose";
 
 function makeid(length: number) {
   let result = "";
@@ -190,23 +192,42 @@ export const adminController = {
     return new SuccessMsgResponse("Success").send(res);
   }),
   addCategory: asyncHandler(async (req: any, res) => {
-    const { name, img } = req.body;
-    const branch = await CategoryModel.create({
+    const { name, img, slug, subCategories } = req.body;
+
+    const category = await CategoryModel.create({
       img,
       name,
       tag: name
-        .toLowerCase() // Chuyển chữ hoa thành chữ thường
-        .normalize("NFD") // Chuẩn hóa chuỗi để tách dấu tiếng Việt
-        .replace(/[\u0300-\u036f]/g, "") // Loại bỏ dấu tiếng Việt
-        .replace(/đ/g, "d") // Thay ký tự 'đ' thành 'd'
-        .replace(/[^a-z0-9\s-]/g, "") // Loại bỏ ký tự đặc biệt
-        .trim() // Loại bỏ khoảng trắng đầu và cuối chuỗi
-        .replace(/\s+/g, "-"), // Thay khoảng trắng bằng dấu gạch ngang
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-"),
+      slug,
+      subCategories,
     });
     return new SuccessMsgResponse("Success").send(res);
   }),
   deleteCategory: asyncHandler(async (req: any, res) => {
-    await CategoryModel.findByIdAndDelete(req.body.id);
+    const id = req.params.id;
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValidId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    const category = await CategoryModel.findById(id);
+
+    if (!category) {
+      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
+        res
+      );
+    }
+
+    await CategoryModel.deleteOne({ _id: id });
     return new SuccessMsgResponse("Success").send(res);
   }),
 
