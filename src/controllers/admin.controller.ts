@@ -212,7 +212,29 @@ export const adminController = {
     return new SuccessResponse("Success", category).send(res);
   }),
   addCategory: asyncHandler(async (req: any, res) => {
-    const { name, img, slug, subCategories } = req.body;
+    const { name, img, parentCategoryId } = req.body;
+    console.log(parentCategoryId);
+    if (parentCategoryId) {
+      await CategoryModel.updateOne(
+        { _id: parentCategoryId },
+        {
+          $push: {
+            subCategories: {
+              name,
+              tag: name.en
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/đ/g, "d")
+                .replace(/[^a-z0-9\s-]/g, "")
+                .trim()
+                .replace(/\s+/g, "-"),
+              img,
+            },
+          },
+        }
+      );
+    }
 
     const category = await CategoryModel.create({
       img,
@@ -225,7 +247,7 @@ export const adminController = {
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-"),
-      subCategories,
+      subCategories: [],
     });
     return new SuccessMsgResponse("Success").send(res);
   }),

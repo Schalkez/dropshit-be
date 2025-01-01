@@ -7,7 +7,7 @@ import { Server } from "http";
 import { Socket } from "socket.io";
 import { SocketServer } from "./socket/socket-server";
 import admin, { ServiceAccount } from "firebase-admin";
-import serviceAccount from "./config/fcmmess-4c2c4-a71320874f3d.json";
+import serviceAccount from "./configfb/fcmmess-4c2c4-a71320874f3d.json";
 import { apiToken } from "./config";
 import UserRepo from "./database/repository/UserRepo";
 import { forEach } from "lodash";
