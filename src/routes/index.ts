@@ -11,6 +11,7 @@ import upload from "./upload";
 import asyncHandler from "../helpers/asyncHandler";
 import { PublicRequest } from "app-request";
 import { SuccessResponse } from "../core/ApiResponse";
+import { adminController } from "../controllers/admin.controller";
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const router = express.Router();
 /*---------------------------------------------------------*/
 router.use("/auth", signup);
 router.use("/role", role);
+router.use("/categories", adminController.getCategory);
 router.use("/profile", me);
 router.use("/upload", upload);
 router.use("/loterry", lot);
