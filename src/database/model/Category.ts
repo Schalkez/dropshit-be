@@ -1,4 +1,8 @@
 import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
+const URLSlug = require("mongoose-slug-generator");
+
+mongoose.plugin(URLSlug);
 
 export const DOCUMENT_NAME = "Category";
 export const COLLECTION_NAME = "categories";
@@ -13,16 +17,17 @@ const subCategorySchema = new Schema(
       type: Schema.Types.String,
       required: true,
     },
+    slug: { type: Schema.Types.String, slug: "name" },
     img: {
       type: Schema.Types.String,
-      default: null, // Không bắt buộc
+      default: null,
     },
     status: {
       type: Schema.Types.Boolean,
       default: true,
     },
   },
-  { _id: false } // Không cần tạo `_id` riêng cho từng subCategory
+  { _id: false }
 );
 
 const categorySchema = new Schema(
@@ -35,22 +40,23 @@ const categorySchema = new Schema(
       type: Schema.Types.String,
       required: true,
     },
+    slug: { type: Schema.Types.String, slug: "name" },
     img: {
       type: Schema.Types.String,
-      default: null, // Không bắt buộc
+      default: null,
     },
     status: {
       type: Schema.Types.Boolean,
       default: true,
     },
     subCategories: {
-      type: [subCategorySchema], // Là một mảng, nhưng không bắt buộc
-      default: [], // Nếu không có, sẽ mặc định là mảng rỗng
+      type: [subCategorySchema],
+      default: [],
     },
   },
   {
-    timestamps: true, // Tự động thêm createdAt và updatedAt
-    versionKey: false, // Loại bỏ trường `__v`
+    timestamps: true,
+    versionKey: false,
   }
 );
 

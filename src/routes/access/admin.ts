@@ -54,6 +54,7 @@ router.get("/logs", adminController.getLogs);
 router.get("/branch", adminController.getBranch);
 router.post("/branch", adminController.addBranch);
 router.post("/branch-delete", adminController.deleteBranch);
+
 router.get("/category", adminController.getCategory);
 router.post("/category", adminController.addCategory);
 router.post("/category-delete", adminController.deleteCategory);
