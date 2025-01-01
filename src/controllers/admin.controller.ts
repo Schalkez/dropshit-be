@@ -148,10 +148,6 @@ export const adminController = {
     await BranchModel.findByIdAndDelete(req.body.id);
     return new SuccessMsgResponse("Success").send(res);
   }),
-  getCategory: asyncHandler(async (req: any, res) => {
-    const categories = await CategoryModel.find().sort({ createdAt: -1 });
-    return new SuccessResponse("Success", categories).send(res);
-  }),
   getBranch: asyncHandler(async (req: any, res) => {
     const categories = await BranchModel.find().sort({ createdAt: -1 });
     return new SuccessResponse("Success", categories).send(res);
@@ -191,13 +187,37 @@ export const adminController = {
     });
     return new SuccessMsgResponse("Success").send(res);
   }),
+
+  getCategory: asyncHandler(async (req: any, res) => {
+    const categories = await CategoryModel.find().sort({ createdAt: -1 });
+    return new SuccessResponse("Success", categories).send(res);
+  }),
+  getCategoryById: asyncHandler(async (req: any, res) => {
+    const id = req.params.id;
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValidId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    const category = await CategoryModel.findById(id);
+
+    if (!category) {
+      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
+        res
+      );
+    }
+
+    return new SuccessResponse("Success", category).send(res);
+  }),
   addCategory: asyncHandler(async (req: any, res) => {
     const { name, img, slug, subCategories } = req.body;
 
     const category = await CategoryModel.create({
       img,
       name,
-      tag: name
+      tag: name.en
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -205,10 +225,29 @@ export const adminController = {
         .replace(/[^a-z0-9\s-]/g, "")
         .trim()
         .replace(/\s+/g, "-"),
-      slug,
       subCategories,
     });
     return new SuccessMsgResponse("Success").send(res);
+  }),
+  updateCategory: asyncHandler(async (req: any, res) => {
+    const id = req.params.id;
+    const { name, tag, img, status } = req.body;
+
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+    if (!isValidId) {
+      return new BadRequestResponse("ID_NOT_VALID").send(res);
+    }
+
+    const category = await CategoryModel.findById(id);
+
+    if (!category) {
+      return new BadRequestResponse(categoryErrors.CATEGORY_NOT_FOUND).send(
+        res
+      );
+    }
+
+    // TODO: update
   }),
   deleteCategory: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
