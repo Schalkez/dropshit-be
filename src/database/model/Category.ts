@@ -1,9 +1,5 @@
 import { Schema, model } from "mongoose";
-import mongoose from "mongoose";
 import slugify from "slugify/slugify";
-const URLSlug = require("mongoose-slug-generator");
-
-mongoose.plugin(URLSlug);
 
 export const DOCUMENT_NAME = "Category";
 export const COLLECTION_NAME = "categories";
