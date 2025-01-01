@@ -231,7 +231,7 @@ export const adminController = {
   }),
   updateCategory: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
-    const { name, tag, img, status } = req.body;
+    const { name, tag, img, status, subCategories } = req.body;
 
     const isValidId = mongoose.Types.ObjectId.isValid(id);
 
@@ -247,7 +247,56 @@ export const adminController = {
       );
     }
 
-    // TODO: update
+    if (!Object.keys(req.body).length) {
+      return new BadRequestResponse(
+        categoryErrors.MUST_PROVIDE_BODY_TO_UPDATE_CATEGORY
+      ).send(res);
+    }
+
+    const updateFields: any = {};
+
+    if (name) {
+      const updateName: any = {};
+      if (Object.keys(name).length > 0) {
+        for (let languageName in name) {
+          if (name.languageName) {
+            updateName.languageName = languageName;
+          }
+        }
+        // TODO: Handle update name and subCategory using transaction
+        const updatedCategory = await CategoryModel.findByIdAndUpdate(
+          id,
+          {
+            $set: updateName,
+          },
+          { new: true }
+        );
+      }
+    }
+
+    if (tag) {
+      updateFields.tag = tag;
+    }
+
+    if (img) {
+      updateFields.img = img;
+    }
+
+    if (status) {
+      updateFields.status = status;
+    }
+
+    if (Object.keys(updateFields).length > 0) {
+      const updatedCategory = await CategoryModel.findByIdAndUpdate(
+        id,
+        {
+          $set: updateFields,
+        },
+        { new: true }
+      );
+
+      return new SuccessResponse("Success", updatedCategory).send(res);
+    }
   }),
   deleteCategory: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
