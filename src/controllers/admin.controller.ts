@@ -98,25 +98,109 @@ export const adminController = {
     const limit = parseInt(req.query.per_page) || 10;
     const userId = "651ed18ed3c656cabc057998";
 
+    const sellerEmail = req.query.sellerEmail;
+
+    const branch = req.query.branch;
+
+    const categorySlug = req.query.categorySlug;
+    const subCategorySlug = req.query.subCategorySlug;
+
+    let categoryFilter = {};
+    if (categorySlug) {
+      const category = await CategoryModel.findOne({
+        slug: categorySlug,
+      }).select("_id");
+
+      if (!category) {
+        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
+      }
+      categoryFilter = { category: category._id };
+    }
+
+    let branchFilter = {};
+    if (branch) {
+      const existBranch = await BranchModel.findOne({
+        name: branch,
+      }).select("_id");
+
+      if (!existBranch) {
+        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
+      }
+      branchFilter = { branch: existBranch._id };
+    }
+
+    if (categorySlug) {
+      const category = await CategoryModel.findOne({
+        slug: categorySlug,
+      }).select("_id");
+
+      if (!category) {
+        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
+      }
+      categoryFilter = { category: category._id };
+    }
+
+    let subCategoryFilter = {};
+    if (subCategorySlug) {
+      subCategoryFilter = { subCategorySlug };
+    }
+
+    let sellerFilter = {};
+    if (sellerEmail) {
+      const seller = await UserModel.findOne({ email: sellerEmail }).select(
+        "_id"
+      );
+      sellerFilter = { sellers: seller?._id };
+    }
+
+    const minPrice = req.query.min_price
+      ? parseFloat(req.query.min_price)
+      : null;
+    const maxPrice = req.query.max_price
+      ? parseFloat(req.query.max_price)
+      : null;
+
+    const priceFilter: any = {};
+    if (minPrice !== null && maxPrice !== null) {
+      priceFilter.price = { $gte: minPrice, $lte: maxPrice };
+    } else if (minPrice !== null) {
+      priceFilter.price = { $gte: minPrice };
+    } else if (maxPrice !== null) {
+      priceFilter.price = { $lte: maxPrice };
+    }
+
     const totalCount = await ProductModel.countDocuments({
       $or: [{ user: null }, { user: userId }],
+      ...priceFilter,
+      ...sellerFilter,
+      ...categoryFilter,
+      ...branchFilter,
     });
 
-    const products = await ProductModel.find()
+    const products = await ProductModel.find({
+      ...priceFilter,
+      ...sellerFilter,
+      ...categoryFilter,
+      ...branchFilter,
+    })
       .populate("branch")
       .populate("category")
       .populate("sellers", "-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     products.map((product) => {
       const category: any = product.category;
-      return category.subCategories.map((subCategory: any) => {
-        if (product.subCategory.equals(subCategory._id)) {
-          product.subCategory = subCategory;
-        }
+      category;
+      const subCate = category.subCategories.filter((x: any) => {
+        return x._id.toString() === product.subCategory.toString();
       });
+
+      product.subCategory = subCate;
+
+      return product;
     });
 
     res.json({ total: totalCount, data: products });
