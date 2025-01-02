@@ -62,9 +62,10 @@ router.patch("/category/:id", adminController.updateCategory);
 router.delete("/category/:id", adminController.deleteCategory);
 router.delete("/category/:id/:subId?", adminController.deleteCategory);
 
-router.post("/product", adminController.addProduct);
-router.get("/product", adminController.getProduct);
-router.get("/product/:id", adminController.getProductById);
+router.post("/products", adminController.addProduct);
+router.get("/products", adminController.getProduct);
+router.get("/products/:id", adminController.getProductById);
+router.patch("/products/:id", adminController.updateProduct);
 router.post("/product-delete", adminController.deleteProduct);
 
 router.post("/addEmployee", adminController.addEmployee);

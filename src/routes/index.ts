@@ -26,7 +26,10 @@ const router = express.Router();
 router.use("/auth", signup);
 router.use("/role", role);
 router.use("/categories", adminController.getCategory);
-router.get("/branch", adminController.getBranch);
+
+router.get("/products", adminController.getProduct);
+router.get("/products/:id", adminController.getProductById);
+
 router.use("/profile", me);
 router.use("/upload", upload);
 router.use("/loterry", lot);

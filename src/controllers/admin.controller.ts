@@ -22,6 +22,7 @@ import { MethodPaymentModel } from "../database/model/MethodPayment";
 import { ConfigModel } from "../database/model/Config";
 import { categoryErrors } from "../constants/errors/category.error";
 import mongoose from "mongoose";
+import { productErrors } from "../constants/errors/product.error";
 
 function makeid(length: number) {
   let result = "";
@@ -120,6 +121,7 @@ export const adminController = {
 
     res.json({ total: totalCount, data: products });
   }),
+
   getProductById: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
 
@@ -143,6 +145,7 @@ export const adminController = {
 
     res.json(product);
   }),
+
   addProduct: asyncHandler(async (req: any, res) => {
     const {
       branch,
@@ -179,10 +182,60 @@ export const adminController = {
     });
     return new SuccessMsgResponse("Success").send(res);
   }),
+
+  updateProduct: asyncHandler(async (req: any, res) => {
+    try {
+      const id = req.params.id;
+
+      if (!Object.keys(req.body).length) {
+        return new BadRequestResponse(
+          productErrors.MUST_PROVIDE_BODY_TO_UPDATE_PRODUCT
+        ).send(res);
+      }
+
+      const { images, sellers } = req.body;
+
+      const isValidId = mongoose.Types.ObjectId.isValid(id);
+
+      if (!isValidId) {
+        return new BadRequestResponse("ID_NOT_VALID").send(res);
+      }
+
+      const product = await ProductModel.findById(id);
+
+      if (!product) {
+        return new BadRequestResponse("ID_NOT_VALID").send(res);
+      }
+
+      const updateFields: any = {};
+
+      for (const [key, value] of Object.entries(req.body)) {
+        if (value) {
+          updateFields[key] = value;
+        }
+      }
+
+      if (Object.keys(updateFields).length > 0) {
+        const updatedCategory = await ProductModel.findByIdAndUpdate(
+          id,
+          {
+            $set: updateFields,
+          },
+          { new: true }
+        );
+
+        return new SuccessResponse("Success", updatedCategory).send(res);
+      }
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
+  }),
+
   deleteProduct: asyncHandler(async (req: any, res) => {
     await ProductModel.findByIdAndDelete(req.body.id);
     return new SuccessMsgResponse("Success").send(res);
   }),
+
   addBranch: asyncHandler(async (req: any, res) => {
     const { name, img } = req.body;
     const branch = await BranchModel.create({
