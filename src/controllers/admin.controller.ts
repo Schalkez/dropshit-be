@@ -111,10 +111,7 @@ export const adminController = {
         slug: categorySlug,
       }).select("_id");
 
-      if (!category) {
-        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
-      }
-      categoryFilter = { category: category._id };
+      categoryFilter = { category: category?._id };
     }
 
     let branchFilter = {};
@@ -123,26 +120,7 @@ export const adminController = {
         name: branch,
       }).select("_id");
 
-      if (!existBranch) {
-        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
-      }
-      branchFilter = { branch: existBranch._id };
-    }
-
-    if (categorySlug) {
-      const category = await CategoryModel.findOne({
-        slug: categorySlug,
-      }).select("_id");
-
-      if (!category) {
-        return res.status(404).json({ message: "CATEGORY_NOT_FOUND" });
-      }
-      categoryFilter = { category: category._id };
-    }
-
-    let subCategoryFilter = {};
-    if (subCategorySlug) {
-      subCategoryFilter = { subCategorySlug };
+      branchFilter = { branch: existBranch?._id };
     }
 
     let sellerFilter = {};
@@ -203,7 +181,22 @@ export const adminController = {
       return product;
     });
 
-    res.json({ total: totalCount, data: products });
+    let result: any = [];
+    if (subCategorySlug) {
+      result = products.filter((product) => {
+        const subCategories: any = product.subCategory;
+
+        for (let subCategory of subCategories) {
+          if (subCategory.slug === subCategorySlug) {
+            return product;
+          }
+        }
+      });
+    } else {
+      result = products;
+    }
+
+    res.json({ total: totalCount, data: result });
   }),
 
   getProductById: asyncHandler(async (req: any, res) => {
