@@ -203,7 +203,22 @@ export const adminController = {
       return product;
     });
 
-    res.json({ total: totalCount, data: products });
+    let result: any = [];
+    if (subCategorySlug) {
+      result = products.filter((product) => {
+        const subCategories: any = product.subCategory;
+
+        for (let subCategory of subCategories) {
+          if (subCategory.slug === subCategorySlug) {
+            return product;
+          }
+        }
+      });
+    } else {
+      result = products;
+    }
+
+    res.json({ total: totalCount, data: result });
   }),
 
   getProductById: asyncHandler(async (req: any, res) => {
