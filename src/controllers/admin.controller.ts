@@ -316,7 +316,8 @@ export const adminController = {
   }),
 
   deleteProduct: asyncHandler(async (req: any, res) => {
-    await ProductModel.findByIdAndDelete(req.body.id);
+    const id = req.params.id;
+    await ProductModel.findByIdAndDelete(id);
     return new SuccessMsgResponse("Success").send(res);
   }),
 
