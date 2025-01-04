@@ -171,8 +171,7 @@ export const adminController = {
 
     products.map((product) => {
       const category: any = product.category;
-      category;
-      const subCate = category.subCategories.filter((x: any) => {
+      const subCate = category.subCategories.find((x: any) => {
         return x._id.toString() === product.subCategory.toString();
       });
 
