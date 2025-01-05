@@ -56,6 +56,14 @@ const schema = new Schema(
       type: Schema.Types.Boolean,
       default: true,
     },
+    isBestSelling: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
+    isProductFeature: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
     category: {
       type: Schema.Types.ObjectId,
       ref: "Category",

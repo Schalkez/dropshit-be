@@ -53,7 +53,15 @@ export const AuthControllers = {
   }),
   getProductsFeature: asyncHandler(async (req: RoleRequest, res) => {
     const products = await ProductModel.aggregate([
-      { $match: { user: { $ne: null } } }, // Ensure products have a user
+      {
+        $match: {
+          isProductFeature: true,
+          $or: [
+            { sellers: { $ne: null } }, // sellers không phải null
+            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
+          ],
+        },
+      },
       { $sample: { size: 10 } }, // Randomly select 10 products
     ]);
 
@@ -63,11 +71,14 @@ export const AuthControllers = {
     const products = await ProductModel.aggregate([
       {
         $match: {
-          user: { $ne: null }, // Ensure products have a user
-          quantity: { $gt: 700 }, // Filter products with quantity greater than 500
+          isBestSelling: true,
+          $or: [
+            { sellers: { $ne: null } }, // sellers không phải null
+            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
+          ],
         },
-      },
-      { $sample: { size: 10 } }, // Randomly select 10 products
+      }, // Lọc các sản phẩm bán chạy và có sellers không null
+      { $sample: { size: 10 } }, // Chọn ngẫu nhiên 10 sản phẩm
     ]);
 
     return new SuccessResponse("ok", products).send(res);
