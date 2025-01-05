@@ -26,10 +26,17 @@ const schema = new Schema(
     price: {
       type: Schema.Types.String,
     },
+    finalPrice: {
+      type: Schema.Types.String,
+    },
     description: {
       type: Schema.Types.String,
     },
     rate: {
+      type: Schema.Types.Number,
+      default: 0,
+    },
+    deliveryDays: {
       type: Schema.Types.Number,
       default: 0,
     },

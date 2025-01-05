@@ -279,8 +279,10 @@ export const adminController = {
       category,
       subCategory,
       description,
+      deliveryDays,
       images,
       price,
+      finalPrice,
       quantity,
       user,
       name,
@@ -295,13 +297,15 @@ export const adminController = {
       );
     }
 
-    const data = await ProductModel.create({
+    await ProductModel.create({
       branch,
       category,
       subCategory,
       description,
       images,
       price,
+      finalPrice,
+      deliveryDays,
       quantity,
       user,
       sellers,
