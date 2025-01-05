@@ -239,6 +239,16 @@ export const adminController = {
     return res.json(wishlistProducts);
   }),
 
+  productsWishlistCount: asyncHandler(async (req: any, res) => {
+    const wishlistUser = req.query.wishlistUser;
+    console.log(wishlistUser);
+    const count = await ProductModel.countDocuments({
+      wishlistUsers: new mongoose.Types.ObjectId(wishlistUser),
+    });
+
+    return res.json(count);
+  }),
+
   getProductById: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
 
