@@ -8,7 +8,10 @@ import me from "./access/user";
 import role from "./access/role";
 import admin from "./access/admin";
 import upload from "./upload";
+import products from "./public/product";
 import asyncHandler from "../helpers/asyncHandler";
+import category from "./public/category";
+import brands from "./public/brands";
 import { PublicRequest } from "app-request";
 import { SuccessResponse } from "../core/ApiResponse";
 import { adminController } from "../controllers/admin.controller";
@@ -25,10 +28,10 @@ const router = express.Router();
 /*---------------------------------------------------------*/
 router.use("/auth", signup);
 router.use("/role", role);
-router.use("/categories", adminController.getCategory);
 
-router.get("/products", adminController.getProduct);
-router.get("/products/:id", adminController.getProductById);
+router.use("/categories", category);
+router.use("/products", products);
+router.use("/brands", brands);
 
 router.use("/profile", me);
 router.use("/upload", upload);

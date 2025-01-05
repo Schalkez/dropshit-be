@@ -371,6 +371,7 @@ export const adminController = {
   }),
   getCategoryById: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
+    console.log(id);
 
     const isValidId = mongoose.Types.ObjectId.isValid(id);
 
