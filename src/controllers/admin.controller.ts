@@ -95,7 +95,8 @@ export const adminController = {
 
   getProduct: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.per_page) || 10;
+    const limit = parseInt(req.query.limit) || 10;
+    const wishlistUser = parseInt(req.query.wishlistUser);
     const userId = "651ed18ed3c656cabc057998";
 
     const sellerEmail = req.query.sellerEmail;
@@ -147,6 +148,12 @@ export const adminController = {
       priceFilter.price = { $lte: maxPrice };
     }
 
+    if (wishlistUser) {
+      const wishlist = await ProductModel.findOne({
+        user: wishlistUser,
+      }).select("_id");
+    }
+
     const totalCount = await ProductModel.countDocuments({
       $or: [{ user: null }, { user: userId }],
       ...priceFilter,
@@ -196,6 +203,40 @@ export const adminController = {
     }
 
     res.json({ total: totalCount, data: result });
+  }),
+
+  addToWishlist: asyncHandler(async (req: any, res) => {
+    const productId = req.params.id;
+    const userId = req.body.userId;
+    console.log(productId, userId);
+
+    await ProductModel.findByIdAndUpdate(
+      productId,
+      { $addToSet: { wishlistUsers: new mongoose.Types.ObjectId(userId) } } // Chỉ thêm nếu userId chưa tồn tại
+    );
+
+    return new SuccessMsgResponse("Success").send(res);
+  }),
+
+  removeFromWishlist: asyncHandler(async (req: any, res) => {
+    const productId = req.params.id;
+    const userId = req.query.userId;
+
+    await ProductModel.findByIdAndUpdate(productId, {
+      $pull: { wishlistUsers: new mongoose.Types.ObjectId(userId) },
+    });
+
+    return new SuccessMsgResponse("Success").send(res);
+  }),
+
+  productsWishlist: asyncHandler(async (req: any, res) => {
+    const wishlistUser = req.query.wishlistUser;
+
+    const wishlistProducts = await ProductModel.find({
+      wishlistUsers: new mongoose.Types.ObjectId(wishlistUser),
+    });
+
+    return res.json(wishlistProducts);
   }),
 
   getProductById: asyncHandler(async (req: any, res) => {

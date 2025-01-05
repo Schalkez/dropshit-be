@@ -14,6 +14,12 @@ const schema = new Schema(
     //   type: Schema.Types.ObjectId,
     //   ref: "User",
     // },
+    wishlistUsers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     name: {
       type: Schema.Types.String,
     },
