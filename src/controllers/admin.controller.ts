@@ -178,8 +178,8 @@ export const adminController = {
 
     products.map((product) => {
       const category: any = product.category;
-      const subCate = category.subCategories.find((x: any) => {
-        return x._id.toString() === product.subCategory.toString();
+      const subCate = category.subCategories?.find((x: any) => {
+        return x._id?.toString() === product?.subCategory?.toString();
       });
 
       product.subCategory = subCate;
