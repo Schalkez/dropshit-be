@@ -202,7 +202,14 @@ export const adminController = {
       result = products;
     }
 
-    res.json({ total: totalCount, data: result });
+    const meta = {
+      current: page,
+      totalPage: Math.ceil(totalCount / limit),
+      limit,
+      totalRecords: totalCount,
+    };
+
+    res.json({ meta, data: result });
   }),
 
   addToWishlist: asyncHandler(async (req: any, res) => {
