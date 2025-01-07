@@ -26,6 +26,11 @@ app.use(
 );
 app.use(cors({ origin: "*", optionsSuccessStatus: 200 }));
 
+app.use((req, res, next) => {
+  console.log("******** Endpoint ********: ", req.path);
+  next();
+});
+
 // Routes
 app.use("/api/", routes);
 
@@ -40,7 +45,31 @@ const io = require("socket.io")(httpServer, {
   },
 });
 
+const user: {
+  [key: string]: {
+    socket_id: string;
+  };
+} = {};
+
 io.on("connection", (socket: Socket) => {
+  const userId = socket.handshake.auth._id;
+
+  user[userId] = {
+    socket_id: socket.id,
+  };
+
+  socket.on("private message", (data) => {
+    const receiverSocketId = user[data.to].socket_id;
+    socket.to(receiverSocketId).emit("receive private message", {
+      content: data.content,
+      from: userId,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    delete user[userId];
+    console.log(`user ${socket.id} disconnect`);
+  });
   SocketServer(socket, io);
 });
 

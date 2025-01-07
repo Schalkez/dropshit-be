@@ -63,12 +63,16 @@ export const UserControllers = {
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
   }),
+
+  // TODO: Get conservation
   getConservationUser: asyncHandler(async (req: any, res) => {
     const conservation = await Conservation.find({
       user: req.params.id,
     }).populate("store user product");
     return new SuccessResponse("ok", conservation).send(res);
   }),
+
+  // Seller get his conservation
   getConservationStore: asyncHandler(async (req: any, res) => {
     const conservation = await Conservation.find({
       store: req.params.id,
@@ -80,7 +84,11 @@ export const UserControllers = {
     const conservation = await Conservation.findOne({
       store: req.params.id,
       user: req?.user?._id,
-    }).populate("product");
+    })
+      .populate("product")
+      .populate("store");
+
+    console.log("Lấy store: ", conservation);
     return new SuccessResponse("ok", conservation).send(res);
   }),
   getMessageStore: asyncHandler(async (req: any, res) => {
@@ -117,6 +125,7 @@ export const UserControllers = {
 
     return res.status(200).json({ message: "Message sent successfully" });
   }),
+
   updateProfileUser: asyncHandler(async (req: any, res) => {
     const {
       id,
@@ -295,6 +304,7 @@ export const UserControllers = {
     return new SuccessMsgResponse("ok").send(res);
   }),
 
+  // TODO: Get room
   getRoom: asyncHandler(async (req: any, res) => {
     const rooms = await RoomModel.find({ user: req.user?._id });
     return new SuccessResponse("ok", rooms).send(res);

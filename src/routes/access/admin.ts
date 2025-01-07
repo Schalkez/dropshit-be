@@ -90,4 +90,7 @@ router.get("/getUserProfile/:id", UserControllers.getUserProfile);
 router.post("/updateProfileUser", UserControllers.updateProfileUser);
 
 router.post("/updateEmploy", UserControllers.updateEmploy);
+
+// Chat
+router.get("/conversions/admin/:id", adminController.getConversions);
 export default router;

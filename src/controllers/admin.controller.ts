@@ -23,6 +23,7 @@ import { ConfigModel } from "../database/model/Config";
 import { categoryErrors } from "../constants/errors/category.error";
 import mongoose from "mongoose";
 import { productErrors } from "../constants/errors/product.error";
+import Conservation from "../database/model/Conservation";
 
 function makeid(length: number) {
   let result = "";
@@ -932,5 +933,25 @@ export const adminController = {
     await UserRepo.updateInfo(user);
 
     return new SuccessMsgResponse("Thành công").send(res);
+  }),
+
+  // chat
+
+  getConversions: asyncHandler(async (req, res) => {
+    try {
+      const adminId = req.params.id;
+
+      const isValidId = mongoose.Types.ObjectId.isValid(adminId);
+
+      if (!isValidId) {
+        return new BadRequestResponse("ID_NOT_VALID").send(res);
+      }
+
+      const conversions = await Conservation.find({ user: adminId });
+
+      res.json(conversions);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
   }),
 };
