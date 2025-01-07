@@ -36,7 +36,10 @@ export interface STORE_INFO {
   phone: string;
   address: string;
   views: number;
+  isApplyOnce: boolean;
   isVerify: string;
+  email: string;
+  cmndNumber: string;
   cmnd: {
     before: string;
     after: string;
@@ -48,6 +51,7 @@ export interface BANK_INFO {
   numberBank: string;
   authorName: string;
   branchBank: string;
+  isApplyOnce: boolean;
 }
 
 const schema = new Schema<User>(
@@ -90,8 +94,11 @@ const schema = new Schema<User>(
         address: Schema.Types.String,
         logoStore: Schema.Types.String,
         phone: Schema.Types.String,
+        cmndNumber: Schema.Types.String,
+        email: Schema.Types.String,
         views: Schema.Types.Number,
         stars: Schema.Types.Number,
+        isApplyOnce: Schema.Types.Boolean,
         isVerify: {
           type: Schema.Types.String,
           default: "NO_KYC",
@@ -108,6 +115,7 @@ const schema = new Schema<User>(
         numberBank: Schema.Types.String,
         authorName: Schema.Types.String,
         branchBank: Schema.Types.String,
+        isApplyOnce: Schema.Types.Boolean,
       },
     },
     code: {

@@ -96,7 +96,8 @@ export const adminController = {
 
   getProduct: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.per_page) || 10;
+    const limit = parseInt(req.query.limit) || 10;
+    const wishlistUser = parseInt(req.query.wishlistUser);
     const userId = "651ed18ed3c656cabc057998";
 
     const sellerEmail = req.query.sellerEmail;
@@ -148,6 +149,12 @@ export const adminController = {
       priceFilter.price = { $lte: maxPrice };
     }
 
+    if (wishlistUser) {
+      const wishlist = await ProductModel.findOne({
+        user: wishlistUser,
+      }).select("_id");
+    }
+
     const totalCount = await ProductModel.countDocuments({
       $or: [{ user: null }, { user: userId }],
       ...priceFilter,
@@ -172,9 +179,8 @@ export const adminController = {
 
     products.map((product) => {
       const category: any = product.category;
-      category;
-      const subCate = category.subCategories.filter((x: any) => {
-        return x._id.toString() === product.subCategory.toString();
+      const subCate = category.subCategories?.find((x: any) => {
+        return x._id?.toString() === product?.subCategory?.toString();
       });
 
       product.subCategory = subCate;
@@ -197,7 +203,58 @@ export const adminController = {
       result = products;
     }
 
-    res.json({ total: totalCount, data: result });
+    const meta = {
+      current: page,
+      totalPage: Math.ceil(totalCount / limit),
+      limit,
+      totalRecords: totalCount,
+    };
+
+    res.json({ meta, data: result });
+  }),
+
+  addToWishlist: asyncHandler(async (req: any, res) => {
+    const productId = req.params.id;
+    const userId = req.body.userId;
+    console.log(productId, userId);
+
+    await ProductModel.findByIdAndUpdate(
+      productId,
+      { $addToSet: { wishlistUsers: new mongoose.Types.ObjectId(userId) } } // Chỉ thêm nếu userId chưa tồn tại
+    );
+
+    return new SuccessMsgResponse("Success").send(res);
+  }),
+
+  removeFromWishlist: asyncHandler(async (req: any, res) => {
+    const productId = req.params.id;
+    const userId = req.query.userId;
+
+    await ProductModel.findByIdAndUpdate(productId, {
+      $pull: { wishlistUsers: new mongoose.Types.ObjectId(userId) },
+    });
+
+    return new SuccessMsgResponse("Success").send(res);
+  }),
+
+  productsWishlist: asyncHandler(async (req: any, res) => {
+    const wishlistUser = req.query.wishlistUser;
+
+    const wishlistProducts = await ProductModel.find({
+      wishlistUsers: new mongoose.Types.ObjectId(wishlistUser),
+    });
+
+    return res.json(wishlistProducts);
+  }),
+
+  productsWishlistCount: asyncHandler(async (req: any, res) => {
+    const wishlistUser = req.query.wishlistUser;
+    console.log(wishlistUser);
+    const count = await ProductModel.countDocuments({
+      wishlistUsers: new mongoose.Types.ObjectId(wishlistUser),
+    });
+
+    return res.json(count);
   }),
 
   getProductById: asyncHandler(async (req: any, res) => {
@@ -230,8 +287,10 @@ export const adminController = {
       category,
       subCategory,
       description,
+      deliveryDays,
       images,
       price,
+      finalPrice,
       quantity,
       user,
       name,
@@ -246,13 +305,15 @@ export const adminController = {
       );
     }
 
-    const data = await ProductModel.create({
+    await ProductModel.create({
       branch,
       category,
       subCategory,
       description,
       images,
       price,
+      finalPrice,
+      deliveryDays,
       quantity,
       user,
       sellers,
@@ -310,7 +371,8 @@ export const adminController = {
   }),
 
   deleteProduct: asyncHandler(async (req: any, res) => {
-    await ProductModel.findByIdAndDelete(req.body.id);
+    const id = req.params.id;
+    await ProductModel.findByIdAndDelete(id);
     return new SuccessMsgResponse("Success").send(res);
   }),
 
@@ -372,6 +434,7 @@ export const adminController = {
   }),
   getCategoryById: asyncHandler(async (req: any, res) => {
     const id = req.params.id;
+    console.log(id);
 
     const isValidId = mongoose.Types.ObjectId.isValid(id);
 

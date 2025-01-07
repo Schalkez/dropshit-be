@@ -66,7 +66,7 @@ router.post("/products", adminController.addProduct);
 router.get("/products", adminController.getProduct);
 router.get("/products/:id", adminController.getProductById);
 router.patch("/products/:id", adminController.updateProduct);
-router.post("/product-delete", adminController.deleteProduct);
+router.delete("/product/:id", adminController.deleteProduct);
 
 router.post("/addEmployee", adminController.addEmployee);
 

@@ -28,6 +28,7 @@ import { LogsAdmin } from "../database/model/Log-login";
 import { PackageModel } from "../database/model/Package";
 import Noti from "../database/model/Noti";
 import { ProductModel } from "../database/model/Products";
+import { RoleModel } from "../database/model/Role";
 const loginAdmin = {} as any;
 
 function makeid(length: number) {
@@ -52,7 +53,15 @@ export const AuthControllers = {
   }),
   getProductsFeature: asyncHandler(async (req: RoleRequest, res) => {
     const products = await ProductModel.aggregate([
-      { $match: { user: { $ne: null } } }, // Ensure products have a user
+      {
+        $match: {
+          isProductFeature: true,
+          $or: [
+            { sellers: { $ne: null } }, // sellers không phải null
+            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
+          ],
+        },
+      },
       { $sample: { size: 10 } }, // Randomly select 10 products
     ]);
 
@@ -62,11 +71,14 @@ export const AuthControllers = {
     const products = await ProductModel.aggregate([
       {
         $match: {
-          user: { $ne: null }, // Ensure products have a user
-          quantity: { $gt: 700 }, // Filter products with quantity greater than 500
+          isBestSelling: true,
+          $or: [
+            { sellers: { $ne: null } }, // sellers không phải null
+            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
+          ],
         },
-      },
-      { $sample: { size: 10 } }, // Randomly select 10 products
+      }, // Lọc các sản phẩm bán chạy và có sellers không null
+      { $sample: { size: 10 } }, // Chọn ngẫu nhiên 10 sản phẩm
     ]);
 
     return new SuccessResponse("ok", products).send(res);
@@ -75,55 +87,83 @@ export const AuthControllers = {
     res.send("ok");
   }),
   signUp: asyncHandler(async (req: RoleRequest, res) => {
-    const user = await UserRepo.findByPhone(req.body.email);
+    try {
+      // Tìm user bằng email
+      const user = await UserRepo.findByPhone(req.body.email);
+      console.log(user);
 
-    if (user)
-      throw new BadRequestResponse("Email người dùng đã tồn tại").send(res);
+      if (user?.roles?.find((r) => r.code === "CUSTOMER")) {
+        // Lấy thông tin role CUSTOMER và SELLER từ RoleModel
+        const customerRole = await RoleModel.findOne({ code: "CUSTOMER" });
+        const sellerRole = await RoleModel.findOne({ code: "SELLER" });
 
-    const accessTokenKey = crypto.randomBytes(64).toString("hex");
-    const refreshTokenKey = crypto.randomBytes(64).toString("hex");
-    // const passwordHash = await bcrypt.hash(req.body.password, 10);
-    let packageC;
-    if (req.body.roleCode == "SELLER") {
-      packageC = await PackageModel.findOne({ isDefaul: true });
-      //   const code = await UserModel.findOne({ code: req.body.refCode });
+        if (!customerRole || !sellerRole) {
+          return new BadRequestResponse(
+            "Role không tìm thấy, customerRole, sellerRole"
+          ).send(res);
+        }
 
-      //   if (!code)
-      //     return new BadRequestResponse("Mã giới thiệu không đúng").send(res);
-      //   if (code.email == req.body.email)
-      //     return new BadRequestResponse("Email đã được sử dụng").send(res);
+        // Thực hiện xóa role CUSTOMER
+        await UserModel.updateOne(
+          { email: req.body.email },
+          { $pull: { roles: customerRole._id } }
+        );
+
+        // Thực hiện thêm role SELLER
+        await UserModel.updateOne(
+          { email: req.body.email },
+          { $addToSet: { roles: sellerRole._id } }
+        );
+      }
+
+      // Tạo token
+      const accessTokenKey = crypto.randomBytes(64).toString("hex");
+      const refreshTokenKey = crypto.randomBytes(64).toString("hex");
+
+      let packageC;
+      if (req.body.roleCode === "SELLER") {
+        packageC = await PackageModel.findOne({ isDefaul: true });
+      }
+
+      // Tạo user
+      const { user: createdUser, keystore } = await UserRepo.create(
+        {
+          name: req.body.name,
+          phone: req.body.phone,
+          password: req.body.password,
+          code: makeid(5),
+          email: req.body.email,
+          package: packageC?._id,
+          parentCode: req.body.refCode || "",
+        } as User,
+        accessTokenKey,
+        refreshTokenKey,
+        req.body.roleCode
+      );
+
+      // Tạo token cho user
+      const tokens = await createTokens(
+        createdUser,
+        keystore.primaryKey,
+        keystore.secondaryKey
+      );
+
+      // Tạo thông báo
+      await Noti.create({
+        content: "Chúc mừng quý khách đã mở cửa hàng",
+        user: createdUser?._id,
+        type: "",
+      });
+
+      // Trả về phản hồi
+      new SuccessResponse("Đăng kí tài khoản thành công", {
+        user: createdUser,
+        tokens: tokens,
+      }).send(res);
+    } catch (error) {
+      console.error("Error in signUp:", error);
+      return new BadRequestResponse("Lỗi trong quá trình đăng ký").send(res);
     }
-
-    const { user: createdUser, keystore } = await UserRepo.create(
-      {
-        name: req.body.name,
-        phone: req.body.phone,
-        password: req.body.password,
-        code: makeid(5),
-        email: req.body.email,
-        package: packageC?._id,
-        parentCode: req.body.refCode || "",
-      } as User,
-      accessTokenKey,
-      refreshTokenKey,
-      req.body.roleCode
-    );
-
-    const tokens = await createTokens(
-      createdUser,
-      keystore.primaryKey,
-      keystore.secondaryKey
-    );
-
-    await Noti.create({
-      content: "Chúc mừng quý khách đã mở cửa hàng",
-      user: createdUser?._id,
-      type: "",
-    });
-    new SuccessResponse("Đăng kí tài khoản thành công", {
-      user: createdUser,
-      tokens: tokens,
-    }).send(res);
   }),
 
   signIn: asyncHandler(async (req: PublicRequest, res) => {

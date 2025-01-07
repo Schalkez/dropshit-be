@@ -14,16 +14,29 @@ const schema = new Schema(
     //   type: Schema.Types.ObjectId,
     //   ref: "User",
     // },
+    wishlistUsers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     name: {
       type: Schema.Types.String,
     },
     price: {
       type: Schema.Types.String,
     },
+    finalPrice: {
+      type: Schema.Types.String,
+    },
     description: {
       type: Schema.Types.String,
     },
     rate: {
+      type: Schema.Types.Number,
+      default: 0,
+    },
+    deliveryDays: {
       type: Schema.Types.Number,
       default: 0,
     },
@@ -40,6 +53,14 @@ const schema = new Schema(
       ref: "Branch",
     },
     status: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
+    isBestSelling: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
+    isProductFeature: {
       type: Schema.Types.Boolean,
       default: true,
     },

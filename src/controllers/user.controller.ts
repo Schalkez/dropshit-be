@@ -26,6 +26,7 @@ import { MessageModel } from "../database/model/Message";
 import { RoomModel } from "../database/model/Room";
 import moment from "moment";
 import Conservation from "../database/model/Conservation";
+import mongoose from "mongoose";
 
 export const UserControllers = {
   getHisDeposit: asyncHandler(async (req: any, res) => {
@@ -158,6 +159,7 @@ export const UserControllers = {
         authorName,
         branchBank: "",
         numberBank,
+        isApplyOnce: true,
       };
     }
 
@@ -514,15 +516,15 @@ export const UserControllers = {
   addCart: asyncHandler(async (req: any, res) => {
     const { products, user_store, user_customer } = req.body;
 
-    const userStore = (await UserModel.findById(user_store).populate(
-      "package"
-    )) as any;
+    // const userStore = (await UserModel.findById(user_store).populate(
+    //   "package"
+    // )) as any;
     const profit = await ConfigModel.findOne({
       name: "PROFIT",
     });
-    if (!userStore) {
-      return new SuccessMsgResponse("tt").send(res);
-    }
+    // if (!userStore) {
+    //   return new SuccessMsgResponse("tt").send(res);
+    // }
     let tong_gia_kho = 0;
     products.map((item: any) => {
       tong_gia_kho =
@@ -530,7 +532,7 @@ export const UserControllers = {
     });
     const order = OrderModel.create({
       product: products,
-      employee: req.user._id,
+      user: new mongoose.Types.ObjectId(req.user._id),
       // gia_kho:
       //   tong_gia_kho -
       //   (tong_gia_kho * Number.parseFloat(userStore?.package?.profit)) / 100,
@@ -539,7 +541,7 @@ export const UserControllers = {
       gia_kho: tong_gia_kho - (tong_gia_kho * (profit?.value || 0)) / 100,
       profit: (tong_gia_kho * (profit?.value || 0)) / 100,
       tongtien: tong_gia_kho,
-      user: user_store,
+      // user: user_store,
       customer: user_customer,
     });
     return new SuccessMsgResponse("tt").send(res);
@@ -552,11 +554,22 @@ export const UserControllers = {
   }),
 
   updateInfoShop: asyncHandler(async (req: any, res) => {
-    const { nameStore, phone, address, logoStore } = req.body;
+    const {
+      nameStore,
+      phone,
+      address,
+      logoStore,
+      isApplyOnce,
+      email,
+      cmndNumber,
+    } = req.body;
     const user = await UserModel.findById(req.user._id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
     user.store = {
       address,
+      cmndNumber,
+      email,
+      isApplyOnce,
       cmnd: {
         ...user?.store?.cmnd,
       },
@@ -571,11 +584,24 @@ export const UserControllers = {
   }),
 
   verifyShop: asyncHandler(async (req: any, res) => {
-    const { nameStore, phone, address, cmnd_before, cmnd_after } = req.body;
+    const {
+      nameStore,
+      phone,
+      address,
+      cmnd_before,
+      cmnd_after,
+      cmndNumber,
+      isApplyOnce,
+      email,
+    } = req.body;
+
     const user = await UserModel.findById(req.user._id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
     user.store = {
+      email,
+      cmndNumber,
       address,
+      isApplyOnce,
       cmnd: {
         after: cmnd_after,
         before: cmnd_before,
@@ -777,7 +803,8 @@ export const UserControllers = {
     }).send(res);
   }),
   updateBank: asyncHandler(async (req: ProtectedRequest, res) => {
-    const { nameBank, numberBank, authorName, branchBank } = req.body;
+    const { nameBank, numberBank, authorName, branchBank, isApplyOnce } =
+      req.body;
     const user = await UserRepo.findPrivateProfileById(req.user._id);
     if (!user) throw new BadRequestResponse("User not registered").send(res);
     user.bankInfo = {
@@ -785,6 +812,7 @@ export const UserControllers = {
       nameBank,
       numberBank,
       branchBank,
+      isApplyOnce,
     };
     await UserRepo.updateInfo(user);
 
