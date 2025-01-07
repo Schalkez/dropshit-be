@@ -8,11 +8,7 @@ import { adminController } from "../../controllers/admin.controller";
 
 const router = express.Router();
 
-router.use(
-  authentication,
-  role(RoleCode.ADMIN, RoleCode.EMPLOYEE),
-  authorization
-);
+router.use(authentication, role(RoleCode.ADMIN), authorization);
 
 router.get("/users", adminController.getUsers);
 

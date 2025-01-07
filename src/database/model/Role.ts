@@ -5,10 +5,10 @@ export const COLLECTION_NAME = "roles";
 
 export enum RoleCode {
   CUSTOMER = "CUSTOMER",
-  SUB_ADMIN = "SUB_ADMIN",
-  EMPLOYEE = "EMPLOYEE",
+  // SUB_ADMIN = "SUB_ADMIN",
+  // EMPLOYEE = "EMPLOYEE",
   ADMIN = "ADMIN",
-  STORE = "STORE",
+  // STORE = "STORE",
   SELLER = "SELLER",
 }
 
