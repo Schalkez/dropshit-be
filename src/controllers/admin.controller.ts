@@ -618,16 +618,18 @@ export const adminController = {
     });
     return new SuccessMsgResponse("Success").send(res);
   }),
+
   getUsers: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1; // Default to page 1 if not specified
     const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
     const searchQuery = req.query.search || "";
+
     const role = await RoleModel.findOne({
       code: req.query.role,
     });
 
     let searchFilter = {
-      email: { $ne: "admin@123.com" },
+      // email: { $ne: "admin@123.com" },
 
       $or: [
         { name: { $regex: searchQuery, $options: "i" } },
@@ -636,6 +638,7 @@ export const adminController = {
         { "store.nameStore": { $regex: searchQuery, $options: "i" } },
       ],
     } as any;
+
     if (role) {
       searchFilter.roles = { $elemMatch: { $eq: role._id } };
     }

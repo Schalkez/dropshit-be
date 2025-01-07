@@ -720,29 +720,33 @@ export const UserControllers = {
     await UserRepo.updateInfo(user);
     return new SuccessMsgResponse("Thêm sản phẩm thành công").send(res);
   }),
-  getProductByUserEmployee: asyncHandler(async (req: any, res) => {
+  getShopProducts: asyncHandler(async (req: any, res) => {
     console.log(req.params.id);
+    console.log(123);
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 50;
     const totalCount = await ProductModel.countDocuments();
+
     const products = await ProductModel.find({
-      user: req.params.id,
+      sellers: { $in: [req.params.id] },
     })
-      .populate("user category branch")
+      .populate("sellers category branch")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
+
     res.json({ total: totalCount, data: products });
   }),
   gteProductByUser: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 50;
+
     const totalCount = await ProductModel.countDocuments();
     const products = await ProductModel.find({
-      user: req.user._id,
+      sellers: { $in: [req.params.id] },
     })
-      .populate("user category branch")
+      .populate("sellers category branch")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -787,17 +791,24 @@ export const UserControllers = {
   }),
 
   addVirtualCustomer: asyncHandler(async (req: ProtectedRequest, res) => {
+    const role = await RoleModel.findOne({ code: "CUSTOMER" });
+
+    if (!role) {
+      return new BadRequestResponse("Không tìm thấy role").send(res);
+    }
+
     const user = await UserModel.create({
       name: req.body.name,
       address: [req.body.address],
       isCustomerVirtual: true,
       email: req.body.email,
-      roles: ["64f0a73c5a3d3a1b420dc950"],
+      roles: [role],
       phone: req.body.phone,
       money: 10000000,
       updatedAt: new Date().getTime(),
       createdAt: new Date().getTime(),
     });
+
     return new SuccessMsgResponse("tt").send(res);
   }),
   getMe: asyncHandler(async (req: ProtectedRequest, res) => {
