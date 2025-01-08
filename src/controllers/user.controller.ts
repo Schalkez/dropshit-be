@@ -27,6 +27,7 @@ import { RoomModel } from "../database/model/Room";
 import moment from "moment";
 import Conservation from "../database/model/Conservation";
 import mongoose from "mongoose";
+import { CategoryModel } from "../database/model/Category";
 
 export const UserControllers = {
   getHisDeposit: asyncHandler(async (req: any, res) => {
@@ -627,41 +628,92 @@ export const UserControllers = {
 
     let query = {} as any;
     if (category) {
-      query.category = category;
-    }
-    if (name_key) {
-      query.name = { $regex: name_key, $options: "i" };
+      const existCategory = await CategoryModel.findOne({
+        "subCategories.tag": category,
+      });
+
+      query.category = existCategory?.subCategories?.filter(
+        (subCategory) => subCategory.tag === category
+      )[0]?.id;
     }
 
-    // Lấy danh sách sản phẩm của user hiện tại
+    const filterName: any = {};
+    if (name_key) {
+      filterName.name = name_key;
+    }
+
+    const subCategoryFilter: any = {};
+    if (query?.category) {
+      subCategoryFilter.subCategory = query.category;
+    }
+
+    const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
+
+    const priceFilter: any = {};
+
+    if (minPrice !== null && maxPrice !== null) {
+      priceFilter.price = {
+        $expr: {
+          $and: [
+            { $gt: [{ $toDouble: "$price" }, minPrice] },
+            { $lt: [{ $toDouble: "$price" }, maxPrice] },
+          ],
+        },
+      };
+    } else if (minPrice !== null) {
+      priceFilter.price = {
+        $expr: { $gt: [{ $toDouble: "$price" }, minPrice] },
+      };
+    } else if (maxPrice !== null) {
+      priceFilter.price = {
+        $expr: { $lt: [{ $toDouble: "$price" }, maxPrice] },
+      };
+    }
+
+    const filterQuantity: any = {};
+    const quantity = req.query.quantity ? parseFloat(req.query.quantity) : null;
+    if (quantity) {
+      filterQuantity.quantity = quantity;
+    }
+
     const userProducts = await ProductModel.find({ user: req.user._id });
     const userProductNames = userProducts.map((product) => product.name);
 
-    // Tìm sản phẩm không trùng tên với sản phẩm của user
     const products = await ProductModel.find({
+      ...filterName,
+      ...subCategoryFilter,
+      ...priceFilter.price,
+      ...filterQuantity,
       $and: [
-        { name: { $nin: userProductNames } }, // Tên không trùng với sản phẩm của user
+        { name: { $nin: userProductNames } },
         {
           $or: [
             { user: null }, // Sản phẩm không có user
             { user: "651ed18ed3c656cabc057998" }, // Sản phẩm có user ID là 651ed18ed3c656cabc057998
           ],
         },
-        query, // Điều kiện lọc thêm (category, name_key)
       ],
     })
-      .populate("user category branch")
+      .populate("category branch")
+      .populate("sellers", "-password")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
     const totalCount = await ProductModel.countDocuments({
+      ...filterName,
+      ...subCategoryFilter,
+      ...priceFilter.price,
+      ...filterQuantity,
       $and: [
         { name: { $nin: userProductNames } },
         {
-          $or: [{ user: null }, { user: "651ed18ed3c656cabc057998" }],
+          $or: [
+            { user: null }, // Sản phẩm không có user
+            { user: "651ed18ed3c656cabc057998" }, // Sản phẩm có user ID là 651ed18ed3c656cabc057998
+          ],
         },
-        query,
       ],
     });
 
@@ -796,6 +848,7 @@ export const UserControllers = {
     const config = await ConfigModel.findOne({
       name: "PROFIT",
     });
+
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
     return new SuccessResponse("tt", {
       ...user,
