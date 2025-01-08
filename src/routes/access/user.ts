@@ -44,10 +44,7 @@ router.get("/category", adminController.getCategory);
 
 router.post("/add-product", UserControllers.addProduct);
 router.get("/get-product-user", UserControllers.gteProductByUser);
-router.get(
-  "/get-product-user-employee/:id",
-  UserControllers.getProductByUserEmployee
-);
+router.get("/get-shop-products/:id", UserControllers.getShopProducts);
 router.get("/get-products-store", UserControllers.getProductsStore);
 
 router.post("/add-product-store", UserControllers.addProductUser);

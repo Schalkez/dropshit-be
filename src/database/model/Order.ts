@@ -9,10 +9,6 @@ const schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
     customer: {
       type: Schema.Types.ObjectId,
       ref: "User",

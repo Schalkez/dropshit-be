@@ -29,7 +29,6 @@ export default router.use(
       const user = await UserRepo.findById(new Types.ObjectId(payload.sub));
       if (!user) throw new AuthFailureError("User not registered");
       req.user = user;
-
       const keystore = await KeystoreRepo.findforKey(req.user, payload.prm);
       if (!keystore) throw new AuthFailureError("Invalid access token");
       req.keystore = keystore;

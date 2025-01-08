@@ -12,9 +12,9 @@ import products from "./public/product";
 import asyncHandler from "../helpers/asyncHandler";
 import category from "./public/category";
 import brands from "./public/brands";
+import shop from "./access/shop";
 import { PublicRequest } from "app-request";
 import { SuccessResponse } from "../core/ApiResponse";
-import { adminController } from "../controllers/admin.controller";
 
 const router = express.Router();
 
@@ -32,6 +32,8 @@ router.use("/role", role);
 router.use("/categories", category);
 router.use("/products", products);
 router.use("/brands", brands);
+
+router.use("/shop", shop);
 
 router.use("/profile", me);
 router.use("/upload", upload);

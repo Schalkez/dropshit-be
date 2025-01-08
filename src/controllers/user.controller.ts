@@ -358,6 +358,7 @@ export const UserControllers = {
     });
     return new SuccessResponse("ok", shop).send(res);
   }),
+
   getProductsFilter: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 40;
@@ -374,16 +375,19 @@ export const UserControllers = {
     const total = await ProductModel.countDocuments();
     return new SuccessResponse("tt", { products, total }).send(res);
   }),
+
   getProductDetail: asyncHandler(async (req: any, res) => {
     const product = await ProductModel.findById(req.params.id).populate("user");
     return new SuccessResponse("tt", product).send(res);
   }),
+
   getProductByCategory: asyncHandler(async (req: any, res) => {
     const products = await ProductModel.find({
       category: req.params.category,
     }).limit(6);
     return new SuccessResponse("tt", products).send(res);
   }),
+
   getAllStore: asyncHandler(async (req: any, res) => {
     const role = await RoleModel.findOne({
       code: "SELLER",
@@ -393,21 +397,25 @@ export const UserControllers = {
 
     return new SuccessResponse("tt", stores).send(res);
   }),
+
   getOrderByStore: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 40;
+    console.log(req.user._id);
     const orders = await OrderModel.find({
-      user: req.user._id,
+      seller: req.user._id,
     })
-      .populate("customer employee")
+      .populate("customer")
       .sort({ createdAt: -1 })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
+
     const total = await OrderModel.count({
-      user: req.user._id,
+      seller: req.user._id,
     });
-    return new SuccessResponse("Success", { orders }).send(res);
+
+    return new SuccessResponse("Success", { orders, total }).send(res);
   }),
 
   updateOrder: asyncHandler(async (req: any, res) => {
@@ -416,7 +424,7 @@ export const UserControllers = {
     order.status = req.body.status || order.status;
     order.isPayment = req.body.isPayment || order.isPayment;
     if (req.body.status == "DELIVERED") {
-      const user = await UserModel.findOne({ _id: order.user });
+      const user = await UserModel.findOne({ _id: order.seller });
       if (user) {
         user.money = user.money + (order.tongtien || 0);
         await user.save();
@@ -514,8 +522,9 @@ export const UserControllers = {
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
   }),
+
   addCart: asyncHandler(async (req: any, res) => {
-    const { products, user_store, user_customer } = req.body;
+    const { products, user_store, user_customer, chosenSeller } = req.body;
 
     // const userStore = (await UserModel.findById(user_store).populate(
     //   "package"
@@ -533,7 +542,6 @@ export const UserControllers = {
     });
     const order = OrderModel.create({
       product: products,
-      user: new mongoose.Types.ObjectId(req.user._id),
       // gia_kho:
       //   tong_gia_kho -
       //   (tong_gia_kho * Number.parseFloat(userStore?.package?.profit)) / 100,
@@ -542,6 +550,7 @@ export const UserControllers = {
       gia_kho: tong_gia_kho - (tong_gia_kho * (profit?.value || 0)) / 100,
       profit: (tong_gia_kho * (profit?.value || 0)) / 100,
       tongtien: tong_gia_kho,
+      seller: chosenSeller,
       // user: user_store,
       customer: user_customer,
     });
@@ -763,29 +772,33 @@ export const UserControllers = {
     await UserRepo.updateInfo(user);
     return new SuccessMsgResponse("Thêm sản phẩm thành công").send(res);
   }),
-  getProductByUserEmployee: asyncHandler(async (req: any, res) => {
+  getShopProducts: asyncHandler(async (req: any, res) => {
     console.log(req.params.id);
+    console.log(123);
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 50;
     const totalCount = await ProductModel.countDocuments();
+
     const products = await ProductModel.find({
-      user: req.params.id,
+      sellers: { $in: [req.params.id] },
     })
-      .populate("user category branch")
+      .populate("sellers category branch")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
+
     res.json({ total: totalCount, data: products });
   }),
   gteProductByUser: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 50;
+
     const totalCount = await ProductModel.countDocuments();
     const products = await ProductModel.find({
-      user: req.user._id,
+      sellers: { $in: [req.params.id] },
     })
-      .populate("user category branch")
+      .populate("sellers category branch")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -830,17 +843,24 @@ export const UserControllers = {
   }),
 
   addVirtualCustomer: asyncHandler(async (req: ProtectedRequest, res) => {
+    const role = await RoleModel.findOne({ code: "CUSTOMER" });
+
+    if (!role) {
+      return new BadRequestResponse("Không tìm thấy role").send(res);
+    }
+
     const user = await UserModel.create({
       name: req.body.name,
       address: [req.body.address],
       isCustomerVirtual: true,
       email: req.body.email,
-      roles: ["64f0a73c5a3d3a1b420dc950"],
+      roles: [role],
       phone: req.body.phone,
       money: 10000000,
       updatedAt: new Date().getTime(),
       createdAt: new Date().getTime(),
     });
+
     return new SuccessMsgResponse("tt").send(res);
   }),
   getMe: asyncHandler(async (req: ProtectedRequest, res) => {
