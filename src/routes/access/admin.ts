@@ -70,6 +70,7 @@ router.get("/package", adminController.getPacke);
 
 router.get("/all-stores", UserControllers.getAllStore);
 router.get("/all-order", UserControllers.getOrderAll);
+router.post('/resolvePaymentOrder', adminController.resolvePaymentOrderAdmin)
 router.post("/add-package", adminController.addPackage);
 router.post("/delete-package", adminController.deletePackage);
 router.post("/add-default-package", adminController.setDefaultPackage);
