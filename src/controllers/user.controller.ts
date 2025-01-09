@@ -439,19 +439,13 @@ export const UserControllers = {
     }).populate("customer user");
     return new SuccessResponse("Success", orders).send(res);
   }),
+
   getOrderAll: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const search = req.query.search;
     const status = req.query.status;
     const isPayMentStore = req.query.isPaymentStore;
     let query: any = {};
-
-    if (search) {
-      query.$or = [
-        { "user.store.nameStore": { $regex: new RegExp(search, "i") } },
-        { "customer.name": { $regex: new RegExp(search, "i") } },
-      ];
-    }
 
     if (status) {
       query.status = status;
@@ -460,19 +454,17 @@ export const UserControllers = {
     if (isPayMentStore) {
       query.isPayMentStore = isPayMentStore == "1";
     }
-    console.log(query);
 
     const limit = parseInt(req.query.per_page) || 20;
 
-    const total = await OrderModel.countDocuments(query);
-
-    const orders = await OrderModel.aggregate([
+    // Aggregation pipeline
+    const pipeline: any[] = [
       {
         $lookup: {
-          from: "users",
-          localField: "user",
+          from: "users", // Collection name for User
+          localField: "seller",
           foreignField: "_id",
-          as: "user",
+          as: "seller",
         },
       },
       {
@@ -485,23 +477,44 @@ export const UserControllers = {
       },
       {
         $addFields: {
-          user: { $arrayElemAt: ["$user", 0] },
+          seller: { $arrayElemAt: ["$seller", 0] },
           customer: { $arrayElemAt: ["$customer", 0] },
         },
       },
-      {
-        $match: query,
-      },
-      {
-        $skip: (page - 1) * limit,
-      },
-      {
-        $limit: limit,
-      },
-      {
-        $sort: { createdAt: -1 },
-      },
-    ]);
+    ];
+
+    // Add search query if `search` is provided
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { "seller.email": { $regex: new RegExp(search, "i") } }, // Search by seller's email
+            { "customer.name": { $regex: new RegExp(search, "i") } }, // Search by customer's name
+          ],
+        },
+      });
+    }
+
+    // Add additional filters to the match stage
+    pipeline.push({ $match: query });
+
+    // Pagination
+    pipeline.push({ $skip: (page - 1) * limit }, { $limit: limit });
+
+    // Sorting
+    pipeline.push({ $sort: { createdAt: -1 } });
+
+    // Execute aggregation
+    const orders = await OrderModel.aggregate(pipeline);
+
+    // Get total count
+    const totalPipeline = pipeline.filter(
+      (stage) => !["$skip", "$limit", "$sort"].includes(Object.keys(stage)[0])
+    );
+    totalPipeline.push({ $count: "total" });
+
+    const totalResult = await OrderModel.aggregate(totalPipeline);
+    const total = totalResult[0]?.total || 0;
 
     return new SuccessResponse("Success", { orders, total }).send(res);
   }),
