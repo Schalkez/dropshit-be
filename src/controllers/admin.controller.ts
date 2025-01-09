@@ -1003,22 +1003,22 @@ export const adminController = {
   }),
 
   resolvePaymentOrderAdmin: asyncHandler(async (req: any, res) => {
-      const order = await OrderModel.findById(req.body.orderId);
-      if (!order)
-        return new BadRequestResponse("Không tìm thấy đơn hàng này").send(res);
-      const user = await UserModel.findById(req.body.sellerId);
-      if (!user)
-        return new BadRequestResponse("Không tìm thấy người dùng này").send(res);
-      order.isPayMentStore = true;
-      order.status = "CONFIRM";
-      if (user.money < (order.gia_kho || 0))
-        return new BadRequestResponse("Vui lòng nạp thêm tiền").send(res);
-      user.money = user.money - (order.gia_kho || 0);
-      await order.save();
-      await user.save();
+    const order = await OrderModel.findById(req.body.orderId);
+    if (!order)
+      return new BadRequestResponse("Không tìm thấy đơn hàng này").send(res);
+    const user = await UserModel.findById(req.body.sellerId);
+    if (!user)
+      return new BadRequestResponse("Không tìm thấy người dùng này").send(res);
+    order.isPayment = true;
+    order.status = "CONFIRM";
+    if (user.money < (order.gia_kho || 0))
+      return new BadRequestResponse("Vui lòng nạp thêm tiền").send(res);
+    user.money = user.money - (order.gia_kho || 0);
+    await order.save();
+    await user.save();
 
-      return new SuccessMsgResponse("ok").send(res);
-    }),
+    return new SuccessMsgResponse("ok").send(res);
+  }),
 
   // chat
 
