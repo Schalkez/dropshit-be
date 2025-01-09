@@ -43,7 +43,7 @@ router.get("/get-virtual", UserControllers.getVirtualCustomer);
 router.get("/category", adminController.getCategory);
 
 router.post("/add-product", UserControllers.addProduct);
-router.get("/get-product-user", UserControllers.gteProductByUser);
+router.get("/get-product-user/:id", UserControllers.gteProductByUser);
 router.get("/get-shop-products/:id", UserControllers.getShopProducts);
 router.get("/get-products-store", UserControllers.getProductsStore);
 

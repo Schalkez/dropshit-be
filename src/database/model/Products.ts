@@ -5,11 +5,11 @@ export const COLLECTION_NAME = "products";
 
 const schema = new Schema(
   {
-    // user: {
-    //   type: Schema.Types.ObjectId,
-    //   required: true,
-    //   ref: "User",
-    // },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: false,
+      ref: "User",
+    },
     // employee: {
     //   type: Schema.Types.ObjectId,
     //   ref: "User",
@@ -29,8 +29,17 @@ const schema = new Schema(
     finalPrice: {
       type: Schema.Types.String,
     },
+    isPublic: {
+      type: Schema.Types.Boolean,
+      default: true,
+    },
     description: {
       type: Schema.Types.String,
+    },
+    type: {
+      type: Schema.Types.String,
+      enum: ["PHYSICAL", "VIRTUAL"],
+      default: "PHYSICAL",
     },
     rate: {
       type: Schema.Types.Number,
