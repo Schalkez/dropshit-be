@@ -19,7 +19,7 @@ async function create(sample: Sample): Promise<Sample> {
   sample.createdAt = now;
   sample.updatedAt = now;
   const created = await SampleModel.create(sample);
-  await created.populate("user bank");
+  await created.populate("user");
   return created.toObject();
 }
 

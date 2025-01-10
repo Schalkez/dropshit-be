@@ -16,7 +16,7 @@ router.post("/user", adminController.addUsers);
 
 router.get("/banks", adminController.getBanks);
 
-router.post("/add-banks", adminController.addbankInfo);
+router.post("/add-banks", adminController.addBankInfo);
 router.delete("/delete-bank/:id", adminController.deletebank);
 router.post("/user-update", adminController.update);
 
@@ -70,7 +70,7 @@ router.get("/package", adminController.getPacke);
 
 router.get("/all-stores", UserControllers.getAllStore);
 router.get("/all-order", UserControllers.getOrderAll);
-router.post('/resolvePaymentOrder', adminController.resolvePaymentOrderAdmin)
+router.post("/resolvePaymentOrder", adminController.resolvePaymentOrderAdmin);
 router.post("/add-package", adminController.addPackage);
 router.post("/delete-package", adminController.deletePackage);
 router.post("/add-default-package", adminController.setDefaultPackage);

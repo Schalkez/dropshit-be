@@ -909,7 +909,7 @@ export const UserControllers = {
   }),
 
   payment: asyncHandler(async (req: ProtectedRequest, res) => {
-    const { bank, moneyPayment, content } = req.body;
+    const { moneyPayment, content } = req.body;
     const payments = await PaymentRepo.findBy15Minute(req.user._id);
     if (payments)
       return new BadRequestResponse(
@@ -918,10 +918,10 @@ export const UserControllers = {
 
     const newPayment = await PaymentRepo.create({
       moneyPayment,
-      bank,
       user: req.user._id,
       content,
     } as Sample);
+
     return new SuccessResponse("Vui lòng chờ", { newPayment }).send(res);
   }),
 
@@ -1068,12 +1068,14 @@ export const UserControllers = {
     const total = await WithDrawModel.countDocuments();
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
+
     const data = await WithDrawModel.find({
       user: req.user._id,
     })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
+
     return new SuccessResponse("Thành công", {
       withdraws: data,
       total,

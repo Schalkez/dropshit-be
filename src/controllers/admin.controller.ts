@@ -737,16 +737,16 @@ export const adminController = {
 
       { $unwind: "$user" },
 
-      {
-        $lookup: {
-          from: "methodpayments", // Replace 'users' with the actual collection name for the User model
-          localField: "bank",
-          foreignField: "_id",
-          as: "bank",
-        },
-      },
+      // {
+      //   $lookup: {
+      //     from: "methodpayments", // Replace 'users' with the actual collection name for the User model
+      //     localField: "bank",
+      //     foreignField: "_id",
+      //     as: "bank",
+      //   },
+      // },
 
-      { $unwind: "$bank" },
+      // { $unwind: "$bank" },
       {
         $match: {
           $or: [
@@ -764,8 +764,10 @@ export const adminController = {
       { $skip: (page - 1) * limit },
       { $limit: limit },
     ]);
+
     res.json({ total: totalCount, data: products });
   }),
+
   resolveWithDraw: asyncHandler(async (req: any, res) => {
     const withdraw = await WithDrawModel.findById(req.body.id);
     if (!withdraw)
@@ -852,7 +854,8 @@ export const adminController = {
     await payment.save();
     return new SuccessResponse("Đã giải quyết", user).send(res);
   }),
-  addbankInfo: asyncHandler(async (req: any, res) => {
+
+  addBankInfo: asyncHandler(async (req: any, res) => {
     const { nameBank, numberbank, author, img } = req.body;
     const newBankInfo = await BanInfoModel.create({
       author,

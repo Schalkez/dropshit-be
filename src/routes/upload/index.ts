@@ -9,5 +9,5 @@ const router = express.Router();
 
 router.post("/file", upload.single("file"), UploadController.upload);
 
-router.post("/add-bank", adminController.addbankInfo);
+router.post("/add-bank", adminController.addBankInfo);
 export default router;

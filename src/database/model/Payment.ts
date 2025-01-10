@@ -10,7 +10,7 @@ export enum Category {
 
 export default interface Sample {
   _id: Types.ObjectId;
-  bank: Types.ObjectId;
+  // bank: Types.ObjectId;
   user: Types.ObjectId;
   moneyPayment: number;
   status?: boolean;
@@ -18,17 +18,17 @@ export default interface Sample {
   updatedAt?: Date;
   content: string;
   isResolve: string;
-  note?:string
+  note?: string;
 }
 
 const schema = new Schema<Sample>(
   {
-    bank: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "MethodPayment",
-    },
-    note:Schema.Types.String,
+    // bank: {
+    //   type: Schema.Types.ObjectId,
+    //   required: true,
+    //   ref: "MethodPayment",
+    // },
+    note: Schema.Types.String,
     user: {
       type: Schema.Types.ObjectId,
       required: true,
