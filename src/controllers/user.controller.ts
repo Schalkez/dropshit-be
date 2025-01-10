@@ -911,10 +911,11 @@ export const UserControllers = {
   payment: asyncHandler(async (req: ProtectedRequest, res) => {
     const { moneyPayment, content } = req.body;
     const payments = await PaymentRepo.findBy15Minute(req.user._id);
-    if (payments)
-      return new BadRequestResponse(
-        "Bạn đang có 1 thanh toán vui lòng đợi sau 15 phút nữa"
-      ).send(res);
+    if (payments) {
+      // return new BadRequestResponse(
+      //   "Bạn đang có 1 thanh toán vui lòng đợi sau 15 phút nữa"
+      // ).send(res);
+    }
 
     const newPayment = await PaymentRepo.create({
       moneyPayment,
@@ -942,10 +943,11 @@ export const UserControllers = {
       createdAt: { $gte: fifteenMinutesAgo },
     });
 
-    if (payments)
-      return new BadRequestResponse(
-        "Bạn đang có 1 thanh toán vui lòng đợi sau 15 phút nữa"
-      ).send(res);
+    if (payments) {
+      // return new BadRequestResponse(
+      //   "Bạn đang có 1 thanh toán vui lòng đợi sau 15 phút nữa"
+      // ).send(res);
+    }
 
     await UserRepo.updateInfo(user);
 
@@ -953,6 +955,7 @@ export const UserControllers = {
       moneyWithDraw,
       user: req.user._id,
     } as WithDraw);
+
     return new SuccessResponse(
       "Đã rút thành công vui long đợi tiền về tài khaonr",
       { newPayment }
