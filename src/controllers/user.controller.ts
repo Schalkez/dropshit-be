@@ -234,7 +234,7 @@ export const UserControllers = {
       seller: req?.user?._id,
       status: "DELIVERED",
     });
-    console.log(req?.user?._id);
+
     const countOrder = await OrderModel.countDocuments({
       seller: req?.user?._id,
     });
@@ -253,14 +253,35 @@ export const UserControllers = {
     // Lấy ngày cuối cùng của tháng trước
     const lastDayOfLastMonth = moment().subtract(1, "months").endOf("month");
 
-    const orders = await OrderModel.find({
+    // const orders = await OrderModel.find({
+    //   seller: req?.user?._id,
+    //   isPayment: true,
+    //   status: "DELIVERED",
+    // });
+
+    const allOrders = await OrderModel.find({
       seller: req?.user?._id,
-      isPayment: true,
-      status: "DELIVERED",
-    });
+    }).lean();
+
+    const doneOrders = allOrders.filter(
+      (order) => order.status === "DELIVERED" && order.isPayment
+    );
+
+    const allOrdersTotalPrice = allOrders.reduce((acc, order) => {
+      return acc + (order.gia_kho || 0);
+    }, 0);
+
+    const needResolveOrders = allOrders.filter((order) => !order.isPayment);
+
+    const needResolveOrdersTotalPrice = needResolveOrders.reduce(
+      (acc, order) => {
+        return acc + (order.gia_kho || 0);
+      },
+      0
+    );
 
     // Lọc các đơn hàng trong tháng hiện tại
-    const ordersInCurrentMonth = orders.filter((order) => {
+    const ordersInCurrentMonth = doneOrders.filter((order) => {
       // Kiểm tra nếu ngày tạo đơn hàng nằm trong khoảng từ firstDayOfMonth đến lastDayOfMonth
       return moment(order.createdAt).isBetween(
         firstDayOfMonth,
@@ -277,7 +298,7 @@ export const UserControllers = {
     });
 
     // Lọc các đơn hàng trong tháng trước
-    const ordersInLastMonth = orders.filter((order) => {
+    const ordersInLastMonth = doneOrders.filter((order) => {
       // Kiểm tra nếu ngày tạo đơn hàng nằm trong khoảng từ firstDayOfLastMonth đến lastDayOfLastMonth
       return moment(order.createdAt).isBetween(
         firstDayOfLastMonth,
@@ -296,7 +317,7 @@ export const UserControllers = {
     let totalProfit = 0;
     let totalRevenue = 0;
 
-    orders.forEach((item) => {
+    doneOrders.forEach((item) => {
       totalProfit += item.profit || 0;
       totalRevenue += item.tongtien || 0;
     });
@@ -309,8 +330,10 @@ export const UserControllers = {
       totalRevenue,
       countOrderOnTheWay,
       countOrderDelivered,
-      totalRevenueCurrentMonth,
+      allOrdersTotalPrice,
       totalRevenueLastMonth,
+      totalRevenueCurrentMonth,
+      needResolveOrdersTotalPrice,
     }).send(res);
   }),
   addMessage: asyncHandler(async (req: any, res) => {
@@ -428,7 +451,6 @@ export const UserControllers = {
     })
       .populate("customer")
       .sort({ createdAt: -1 })
-      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -480,6 +502,8 @@ export const UserControllers = {
 
     // Aggregation pipeline
     const pipeline: any[] = [
+      // Sorting
+      { $sort: { createdAt: -1 } },
       {
         $lookup: {
           from: "users", // Collection name for User
@@ -521,9 +545,6 @@ export const UserControllers = {
 
     // Pagination
     pipeline.push({ $skip: (page - 1) * limit }, { $limit: limit });
-
-    // Sorting
-    pipeline.push({ $sort: { createdAt: -1 } });
 
     // Execute aggregation
     const orders = await OrderModel.aggregate(pipeline);
