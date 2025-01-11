@@ -16,6 +16,10 @@ const conserVationSchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    isView: {
+      type: Schema.Types.Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

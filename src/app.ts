@@ -67,6 +67,21 @@ io.on("connection", (socket: Socket) => {
     });
   });
 
+  socket.on("view message", (data) => {
+    console.log("XEM TIN NHẮN RỒI");
+    const receiverSocketId = user[data.to].socket_id;
+    socket.to(receiverSocketId).emit("receive view message", {
+      from: userId,
+    });
+  });
+
+  socket.on("order", (data) => {
+    const receiverSocketId = user[data.to].socket_id;
+    socket.to(receiverSocketId).emit("receive order", {
+      data,
+    });
+  });
+
   socket.on("disconnect", () => {
     delete user[userId];
     console.log(`user ${socket.id} disconnect`);

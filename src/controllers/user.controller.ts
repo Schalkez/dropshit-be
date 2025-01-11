@@ -29,6 +29,8 @@ import Conservation from "../database/model/Conservation";
 import mongoose from "mongoose";
 import { CategoryModel } from "../database/model/Category";
 
+import { Socket } from "socket.io";
+
 export const UserControllers = {
   getHisDeposit: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -37,8 +39,9 @@ export const UserControllers = {
   getOrderNotPayment: asyncHandler(async (req: any, res) => {
     const order = await OrderModel.find({
       isPayMentStore: false,
-      user: req.user._id,
+      seller: req.user._id,
     });
+
     return new SuccessResponse("1", order).send(res);
   }),
   buyPack: asyncHandler(async (req: any, res) => {
@@ -66,7 +69,6 @@ export const UserControllers = {
     return new SuccessMsgResponse("ok").send(res);
   }),
 
-  // TODO: Get conservation
   getConservationUser: asyncHandler(async (req: any, res) => {
     const conservation = await Conservation.find({
       user: req.params.id,
@@ -76,10 +78,16 @@ export const UserControllers = {
 
   // Seller get his conservation
   getConservationStore: asyncHandler(async (req: any, res) => {
-    const conservation = await Conservation.find({
+    const conservations = await Conservation.find({
       store: req.params.id,
     }).populate("store user product");
-    return new SuccessResponse("ok", conservation).send(res);
+
+    // for (let conservation of conservations) {
+    //   conservation.isView = true;
+    //   await conservation.save();
+    // }
+
+    return new SuccessResponse("ok", conservations).send(res);
   }),
 
   getMessageUser: asyncHandler(async (req: any, res) => {
@@ -90,7 +98,6 @@ export const UserControllers = {
       .populate("product")
       .populate("store");
 
-    console.log("Lấy store: ", conservation);
     return new SuccessResponse("ok", conservation).send(res);
   }),
   getMessageStore: asyncHandler(async (req: any, res) => {
@@ -99,6 +106,12 @@ export const UserControllers = {
       store: req?.user?._id,
       user: req.params.id,
     }).populate("product");
+
+    if (conservation) {
+      conservation.isView = true;
+      await conservation.save();
+    }
+
     return new SuccessResponse("ok", conservation).send(res);
   }),
   chatMessage: asyncHandler(async (req: any, res) => {
@@ -307,7 +320,6 @@ export const UserControllers = {
     return new SuccessMsgResponse("ok").send(res);
   }),
 
-  // TODO: Get room
   getRoom: asyncHandler(async (req: any, res) => {
     const rooms = await RoomModel.find({ user: req.user?._id });
     return new SuccessResponse("ok", rooms).send(res);
@@ -401,7 +413,7 @@ export const UserControllers = {
   getOrderByStore: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 40;
-    console.log(req.user._id);
+
     const orders = await OrderModel.find({
       seller: req.user._id,
     })
@@ -535,6 +547,8 @@ export const UserControllers = {
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
   }),
+
+  // TODO: ORDER
 
   addCart: asyncHandler(async (req: any, res) => {
     const { products, user_customer, chosenSeller } = req.body;
