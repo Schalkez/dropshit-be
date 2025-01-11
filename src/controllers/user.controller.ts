@@ -182,12 +182,17 @@ export const UserControllers = {
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
   }),
+
   getUserProfile: asyncHandler(async (req: any, res) => {
     const user = await UserModel.findById(req.params.id);
     if (!user)
       return new BadRequestResponse("Không tìm thấy user này").send(res);
-    const countProduct = await ProductModel.countDocuments({ user: user?._id });
-    const countOrder = await OrderModel.countDocuments({ user: user._id });
+    const countProduct = await ProductModel.countDocuments({
+      sellers: user?._id,
+    });
+
+    const countOrder = await OrderModel.countDocuments({ seller: user._id });
+
     const payments = await SampleModel.find({
       user: user?._id,
       isResolve: "RESOLVE",
@@ -212,27 +217,30 @@ export const UserControllers = {
       totalWithdraw,
     }).send(res);
   }),
+
   getDataShop: asyncHandler(async (req: any, res) => {
+    const countProduct = await ProductModel.countDocuments({
+      sellers: req?.user?._id,
+    });
     const countOrderNEW = await OrderModel.countDocuments({
-      user: req?.user?._id,
+      seller: req?.user?._id,
       status: "PENDING",
     });
     const countOrderOnTheWay = await OrderModel.countDocuments({
-      user: req?.user?._id,
+      seller: req?.user?._id,
       status: "ON_THE_WAY",
     });
     const countOrderDelivered = await OrderModel.countDocuments({
-      user: req?.user?._id,
+      seller: req?.user?._id,
       status: "DELIVERED",
     });
-
+    console.log(req?.user?._id);
     const countOrder = await OrderModel.countDocuments({
-      user: req?.user?._id,
+      seller: req?.user?._id,
     });
 
-    const countProduct = await ProductModel.countDocuments({
-      user: req?.user?._id,
-    });
+    console.log(countOrder);
+
     // Lấy ngày đầu tiên của tháng hiện tại
     const firstDayOfMonth = moment().startOf("month");
 
@@ -246,8 +254,8 @@ export const UserControllers = {
     const lastDayOfLastMonth = moment().subtract(1, "months").endOf("month");
 
     const orders = await OrderModel.find({
-      user: req?.user?._id,
-      isPayMentStore: true,
+      seller: req?.user?._id,
+      isPayment: true,
       status: "DELIVERED",
     });
 
@@ -267,6 +275,7 @@ export const UserControllers = {
     ordersInCurrentMonth.forEach((order) => {
       totalRevenueCurrentMonth += order.tongtien || 0;
     });
+
     // Lọc các đơn hàng trong tháng trước
     const ordersInLastMonth = orders.filter((order) => {
       // Kiểm tra nếu ngày tạo đơn hàng nằm trong khoảng từ firstDayOfLastMonth đến lastDayOfLastMonth
@@ -286,12 +295,12 @@ export const UserControllers = {
 
     let totalProfit = 0;
     let totalRevenue = 0;
-    orders.map((item) => {
+
+    orders.forEach((item) => {
       totalProfit += item.profit || 0;
-    });
-    orders.map((item) => {
       totalRevenue += item.tongtien || 0;
     });
+
     return new SuccessResponse("ok", {
       countOrderNEW,
       countOrder,
