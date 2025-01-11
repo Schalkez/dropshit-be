@@ -529,7 +529,7 @@ export const UserControllers = {
     order.isPayMentStore = true;
     order.status = "CONFIRM";
     if (user.money < (order.gia_kho || 0))
-      return new BadRequestResponse("Vui lòng nạp thêm tiền").send(res);
+      return new BadRequestResponse("Shop vui lòng nạp thêm tiền").send(res);
     user.money = user.money - (order.gia_kho || 0);
     await order.save();
     await user.save();
@@ -537,22 +537,56 @@ export const UserControllers = {
   }),
 
   addCart: asyncHandler(async (req: any, res) => {
-    const { products, user_store, user_customer, chosenSeller } = req.body;
+    const { products, user_customer, chosenSeller } = req.body;
 
     // const userStore = (await UserModel.findById(user_store).populate(
     //   "package"
     // )) as any;
-    const profit = await ConfigModel.findOne({
-      name: "PROFIT",
-    });
+    // const profit = await ConfigModel.findOne({
+    //   name: "PROFIT",
+    // });
     // if (!userStore) {
     //   return new SuccessMsgResponse("tt").send(res);
     // }
-    let tong_gia_kho = 0;
-    products.map((item: any) => {
-      tong_gia_kho =
-        tong_gia_kho + parseFloat(item?.product?.price) * item?.quantity;
+    // let tong_gia_kho = 0;
+
+    // products.forEach((item: any) => {
+    //   tong_gia_kho =
+    //     tong_gia_kho + parseFloat(item?.product?.price) * item?.quantity;
+    // });
+
+    const gia_tung_product = products.map((product: any) => {
+      const tong_gia_chot =
+        Number(product.product.finalPrice) * Number(product.quantity);
+
+      const tong_gia_kho =
+        Number(product.product.price) * Number(product.quantity);
+
+      const profit = tong_gia_chot - tong_gia_kho;
+
+      return {
+        profit,
+        gia_kho: tong_gia_kho,
+        tongtien: tong_gia_chot,
+      };
     });
+
+    console.log(gia_tung_product);
+
+    const { profit, gia_kho, tongtien } = gia_tung_product.reduce(
+      (acc: any, gia: any) => ({
+        ...acc,
+        profit: acc.profit + gia.profit,
+        gia_kho: acc.gia_kho + gia.gia_kho,
+        tongtien: acc.tongtien + gia.tongtien,
+      }),
+      {
+        profit: 0,
+        gia_kho: 0,
+        tongtien: 0,
+      }
+    );
+
     const order = OrderModel.create({
       product: products,
       // gia_kho:
@@ -560,11 +594,10 @@ export const UserControllers = {
       //   (tong_gia_kho * Number.parseFloat(userStore?.package?.profit)) / 100,
       // profit:
       //   (tong_gia_kho * Number.parseFloat(userStore?.package?.profit)) / 100,
-      gia_kho: tong_gia_kho - (tong_gia_kho * (profit?.value || 0)) / 100,
-      profit: (tong_gia_kho * (profit?.value || 0)) / 100,
-      tongtien: tong_gia_kho,
+      profit,
+      gia_kho,
+      tongtien,
       seller: chosenSeller,
-      // user: user_store,
       customer: user_customer,
     });
     return new SuccessMsgResponse("tt").send(res);
@@ -642,6 +675,7 @@ export const UserControllers = {
     const packages = await PackageModel.find().sort({ createdAt: 1 });
     return new SuccessResponse("tt", packages).send(res);
   }),
+
   getProductsStore: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 20;
@@ -649,6 +683,7 @@ export const UserControllers = {
     const name_key = req.query.name_key;
 
     let query = {} as any;
+
     if (category) {
       const existCategory = await CategoryModel.findOne({
         "subCategories.tag": category,
@@ -695,12 +730,10 @@ export const UserControllers = {
 
     const filterQuantity: any = {};
     const quantity = req.query.quantity ? parseFloat(req.query.quantity) : null;
+
     if (quantity) {
       filterQuantity.quantity = quantity;
     }
-
-    const userProducts = await ProductModel.find({ user: req.user._id });
-    const userProductNames = userProducts.map((product) => product.name);
 
     const products = await ProductModel.find({
       ...filterName,
@@ -708,11 +741,12 @@ export const UserControllers = {
       ...priceFilter.price,
       ...filterQuantity,
       $and: [
-        { name: { $nin: userProductNames } },
+        { sellers: { $nin: [req.user._id] } }, // Loại bỏ sản phẩm có ID user trong sellers
         {
           $or: [
-            { user: null }, // Sản phẩm không có user
-            { user: "651ed18ed3c656cabc057998" }, // Sản phẩm có user ID là 651ed18ed3c656cabc057998
+            { sellers: { $exists: false } }, // sellers không tồn tại (undefined)
+            { sellers: { $size: 0 } }, // sellers là mảng rỗng
+            { sellers: null }, // sellers là null
           ],
         },
       ],
@@ -729,11 +763,12 @@ export const UserControllers = {
       ...priceFilter.price,
       ...filterQuantity,
       $and: [
-        { name: { $nin: userProductNames } },
+        { sellers: { $nin: [req.user._id] } }, // Loại bỏ sản phẩm có ID user trong sellers
         {
           $or: [
-            { user: null }, // Sản phẩm không có user
-            { user: "651ed18ed3c656cabc057998" }, // Sản phẩm có user ID là 651ed18ed3c656cabc057998
+            { sellers: { $exists: false } }, // sellers không tồn tại (undefined)
+            { sellers: { $size: 0 } }, // sellers là mảng rỗng
+            { sellers: null }, // sellers là null
           ],
         },
       ],
@@ -748,27 +783,33 @@ export const UserControllers = {
     });
     if (!products?.length)
       return new BadRequestResponse("Không tìm thấy sản phẩm này").send(res);
-    const user = (await UserModel.findById(req.user?._id).populate(
-      "package"
-    )) as any;
+    const user = (await UserModel.findById(req.user?._id)) as any;
     const employee = await UserModel.findOne({
       code: user?.parentCode,
     });
+
     async function getRandomBranchId() {
       const count = await BranchModel.countDocuments();
       const randomIndex = Math.floor(Math.random() * count);
       const randomBranch = await BranchModel.findOne().skip(randomIndex);
-
       return randomBranch?._id;
     }
-    if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
-    user.productQuantity = (user.productQuantity || 0) + products?.length;
-    if (
-      (user.productQuantity || 0) + products?.length >
-      (user?.package?.limit || 0)
-    )
-      return new BadRequestResponse("Đã quá giới hạn gói").send(res);
+
+    if (!user) {
+      return new BadRequestResponse("Không tìm thấy user").send(res);
+    }
+
+    // user.productQuantity = (user.productQuantity || 0) + products?.length;
+
+    // if (
+    //   (user.productQuantity || 0) + products?.length >
+    //   (user?.package?.limit || 0)
+    // ) {
+    //   return new BadRequestResponse("Đã quá giới hạn gói").send(res);
+    // }
+
     const branchId = await getRandomBranchId();
+
     await ProductModel.create(
       products.map((product) => ({
         branch: product?.branch || branchId,
@@ -779,10 +820,10 @@ export const UserControllers = {
         name: product?.name,
         price: product.price,
         user: user._id,
-        employee: employee?._id, // Gán _id của người dùng cho trường user
+        // employee: employee?._id, // Gán _id của người dùng cho trường user
       }))
     );
-    await UserRepo.updateInfo(user);
+    // await UserRepo.updateInfo(user);
     return new SuccessMsgResponse("Thêm sản phẩm thành công").send(res);
   }),
   getShopProducts: asyncHandler(async (req: any, res) => {

@@ -99,7 +99,7 @@ export const adminController = {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const wishlistUser = parseInt(req.query.wishlistUser);
-    const userId = "651ed18ed3c656cabc057998";
+    // const userId = "651ed18ed3c656cabc057998";
 
     const sellerEmail = req.query.sellerEmail;
 
@@ -157,7 +157,7 @@ export const adminController = {
     }
 
     const totalCount = await ProductModel.countDocuments({
-      $or: [{ user: null }, { user: userId }],
+      $or: [{ user: null }],
       ...priceFilter,
       ...sellerFilter,
       ...categoryFilter,
@@ -1015,7 +1015,7 @@ export const adminController = {
     order.isPayment = true;
     order.status = "CONFIRM";
     if (user.money < (order.gia_kho || 0))
-      return new BadRequestResponse("Vui lòng nạp thêm tiền").send(res);
+      return new BadRequestResponse("Shop vui lòng nạp thêm tiền").send(res);
     user.money = user.money - (order.gia_kho || 0);
     await order.save();
     await user.save();

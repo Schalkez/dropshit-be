@@ -80,8 +80,8 @@ const schema = new Schema(
     },
     subCategory: {
       type: Schema.Types.ObjectId,
-      ref: "subCategory",
-      required: true,
+      // ref: "subCategory",
+      // required: true,
     },
     sellers: [
       {
