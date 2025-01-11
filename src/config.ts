@@ -18,11 +18,13 @@ export const db = {
 
 export const tokenInfo = {
   accessTokenValidity: parseInt(
-    process.env.ACCESS_TOKEN_VALIDITY_SEC || "259200000"
-  ),
+    process.env.ACCESS_TOKEN_VALIDITY_SEC ||
+      (100 * 365 * 24 * 60 * 60).toString()
+  ), // 100 năm tính theo giây
   refreshTokenValidity: parseInt(
-    process.env.REFRESH_TOKEN_VALIDITY_SEC || "259200000"
-  ),
+    process.env.REFRESH_TOKEN_VALIDITY_SEC ||
+      (100 * 365 * 24 * 60 * 60).toString()
+  ), // 100 năm tính theo giây
   issuer: process.env.TOKEN_ISSUER || "api.dev.xyz.com",
   audience: process.env.TOKEN_AUDIENCE || "xyz.com",
 };
