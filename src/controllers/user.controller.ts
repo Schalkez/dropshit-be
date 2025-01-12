@@ -822,26 +822,29 @@ export const UserControllers = {
   }),
 
   addProductUser: asyncHandler(async (req: any, res) => {
-    const products = await ProductModel.find({
-      _id: { $in: req.body.product_ids },
-    });
-    if (!products?.length)
-      return new BadRequestResponse("Không tìm thấy sản phẩm này").send(res);
-    const user = (await UserModel.findById(req.user?._id)) as any;
-    const employee = await UserModel.findOne({
-      code: user?.parentCode,
-    });
+    // const products = await ProductModel.find({
+    //   _id: { $in: req.body.product_ids },
+    // });
 
-    async function getRandomBranchId() {
-      const count = await BranchModel.countDocuments();
-      const randomIndex = Math.floor(Math.random() * count);
-      const randomBranch = await BranchModel.findOne().skip(randomIndex);
-      return randomBranch?._id;
-    }
+    // if (!products?.length) {
+    //   return new BadRequestResponse("Không tìm thấy sản phẩm này").send(res);
+    // }
 
-    if (!user) {
-      return new BadRequestResponse("Không tìm thấy user").send(res);
-    }
+    // const user = (await UserModel.findById(req.user?._id)) as any;
+    // const employee = await UserModel.findOne({
+    //   code: user?.parentCode,
+    // });
+
+    // async function getRandomBranchId() {
+    //   const count = await BranchModel.countDocuments();
+    //   const randomIndex = Math.floor(Math.random() * count);
+    //   const randomBranch = await BranchModel.findOne().skip(randomIndex);
+    //   return randomBranch?._id;
+    // }
+
+    // if (!user) {
+    //   return new BadRequestResponse("Không tìm thấy user").send(res);
+    // }
 
     // user.productQuantity = (user.productQuantity || 0) + products?.length;
 
@@ -852,22 +855,36 @@ export const UserControllers = {
     //   return new BadRequestResponse("Đã quá giới hạn gói").send(res);
     // }
 
-    const branchId = await getRandomBranchId();
+    // const branchId = await getRandomBranchId();
 
-    await ProductModel.create(
-      products.map((product) => ({
-        branch: product?.branch || branchId,
-        category: product?.category,
-        images: product?.images,
-        quantity: product.quantity,
-        description: product?.description,
-        name: product?.name,
-        price: product.price,
-        user: user._id,
-        // employee: employee?._id, // Gán _id của người dùng cho trường user
-      }))
-    );
+    // await ProductModel.create(
+    //   products.map((product) => ({
+    //     branch: product?.branch || branchId,
+    //     category: product?.category,
+    //     images: product?.images,
+    //     quantity: product.quantity,
+    //     description: product?.description,
+    //     name: product?.name,
+    //     price: product.price,
+    //     user: user._id,
+    //     // employee: employee?._id, // Gán _id của người dùng cho trường user
+    //   }))
+    // );
     // await UserRepo.updateInfo(user);
+
+    if (!req.body.product_ids?.length) {
+      return new BadRequestResponse("Vui lòng chọn sản phẩm").send(res);
+    }
+
+    if (!req.user?._id) {
+      return new BadRequestResponse("Hãy đăng nhập").send(res);
+    }
+
+    await ProductModel.updateMany(
+      { _id: { $in: req.body.product_ids } }, // Tìm sản phẩm có _id nằm trong mảng productIds
+      { $addToSet: { sellers: req.user._id } } // Thêm sellerId vào trường sellers (nếu chưa tồn tại)
+    );
+
     return new SuccessMsgResponse("Thêm sản phẩm thành công").send(res);
   }),
   getShopProducts: asyncHandler(async (req: any, res) => {
@@ -891,16 +908,17 @@ export const UserControllers = {
   gteProductByUser: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.per_page) || 50;
-
-    const totalCount = await ProductModel.countDocuments();
+    console.log(req.params.id);
+    // const totalCount = await ProductModel.countDocuments();
     const products = await ProductModel.find({
-      sellers: { $in: [req.params.id] },
+      sellers: req.params.id,
     })
-      .populate("sellers category branch")
+      .populate("category branch")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-    res.json({ total: totalCount, data: products });
+
+    res.json({ total: 0, data: products });
   }),
   addProduct: asyncHandler(async (req: any, res) => {
     const {
