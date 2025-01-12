@@ -38,7 +38,7 @@ export const UserControllers = {
 
   getOrderNotPayment: asyncHandler(async (req: any, res) => {
     const order = await OrderModel.find({
-      isPayMentStore: false,
+      isPayment: false,
       seller: req.user._id,
     });
 
@@ -722,7 +722,7 @@ export const UserControllers = {
 
   getProductsStore: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.per_page) || 20;
+    const limit = parseInt(req.query.per_page) || 30;
     const category = req.query.category;
     const name_key = req.query.name_key;
 
@@ -739,6 +739,7 @@ export const UserControllers = {
     }
 
     const filterName: any = {};
+
     if (name_key) {
       filterName.name = name_key;
     }
