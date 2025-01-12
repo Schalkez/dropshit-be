@@ -17,10 +17,7 @@ export const db = {
 };
 
 export const tokenInfo = {
-  accessTokenValidity: parseInt(
-    process.env.ACCESS_TOKEN_VALIDITY_SEC ||
-      (100 * 365 * 24 * 60 * 60).toString()
-  ), // 100 năm tính theo giây
+  accessTokenValidity: 100 * 365 * 24 * 60 * 60,
   refreshTokenValidity: parseInt(
     process.env.REFRESH_TOKEN_VALIDITY_SEC ||
       (100 * 365 * 24 * 60 * 60).toString()
