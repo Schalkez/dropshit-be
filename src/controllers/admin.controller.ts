@@ -157,7 +157,6 @@ export const adminController = {
     }
 
     const totalCount = await ProductModel.countDocuments({
-      $or: [{ user: null }],
       ...priceFilter,
       ...sellerFilter,
       ...categoryFilter,
