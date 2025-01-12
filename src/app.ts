@@ -1,6 +1,5 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
-import TelegramBot, { Message } from "node-telegram-bot-api";
 import "./database"; // initialize database
 import routes from "./routes";
 import { Server } from "http";
@@ -8,10 +7,6 @@ import { Socket } from "socket.io";
 import { SocketServer } from "./socket/socket-server";
 import admin, { ServiceAccount } from "firebase-admin";
 import serviceAccount from "./configfb/fcmmess-4c2c4-a71320874f3d.json";
-import { apiToken } from "./config";
-import UserRepo from "./database/repository/UserRepo";
-import { forEach } from "lodash";
-import User from "./database/model/User";
 import { config } from "dotenv";
 
 config();
@@ -38,8 +33,9 @@ app.use("/api/", routes);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as ServiceAccount),
 });
-// Socket
+
 const httpServer: Server = require("http").createServer(app);
+
 const io = require("socket.io")(httpServer, {
   cors: {
     origin: "*",
@@ -54,6 +50,7 @@ const user: {
 
 io.on("connection", (socket: Socket) => {
   const userId = socket.handshake.auth._id;
+  console.log(`user ${userId} connected`);
 
   user[userId] = {
     socket_id: socket.id,
@@ -76,7 +73,8 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("order", (data) => {
-    const receiverSocketId = user[data.to].socket_id;
+    const receiverSocketId = user[data.to]?.socket_id;
+
     socket.to(receiverSocketId).emit("receive order", {
       data,
     });
@@ -84,7 +82,7 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("disconnect", () => {
     delete user[userId];
-    console.log(`user ${socket.id} disconnect`);
+    console.log(`user ${userId} disconnect`);
   });
   SocketServer(socket, io);
 });
