@@ -349,7 +349,7 @@ export const adminController = {
       const updateFields: any = {};
 
       for (const [key, value] of Object.entries(req.body)) {
-        if (value) {
+        if (value !== undefined && value !== null && value !== 0) {
           updateFields[key] = value;
         }
       }
