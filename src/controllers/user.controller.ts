@@ -144,6 +144,8 @@ export const UserControllers = {
   updateProfileUser: asyncHandler(async (req: any, res) => {
     const {
       id,
+      nameStore,
+      cmndNumber,
       email,
       password,
       views,
@@ -157,6 +159,8 @@ export const UserControllers = {
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
     user.email = email || user.email;
     user.password = password || user.password;
+    user.store.nameStore = nameStore || user.store.nameStore
+    user.store.cmndNumber = cmndNumber || user.store.cmndNumber
     if (user.store) {
       user.store.views = views || user.store.views;
       user.store.stars = stars || user.store.stars;
@@ -581,7 +585,7 @@ export const UserControllers = {
   // TODO: ORDER
 
   addCart: asyncHandler(async (req: any, res) => {
-    const { products, user_customer, chosenSeller } = req.body;
+    const { products, user_customer, chosenSeller, contactName, note, contactPhone } = req.body;
 
     // const userStore = (await UserModel.findById(user_store).populate(
     //   "package"
@@ -643,6 +647,9 @@ export const UserControllers = {
       tongtien,
       seller: chosenSeller,
       customer: user_customer,
+      contactName,
+      contactPhone,
+      note,
     });
     return new SuccessMsgResponse("tt").send(res);
   }),

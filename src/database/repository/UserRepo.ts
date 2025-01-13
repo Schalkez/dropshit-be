@@ -92,6 +92,20 @@ async function findByPhone(phone: string): Promise<User | null> {
     .exec();
 }
 
+async function findByPhoneNumber(phone: string): Promise<User | null> {
+  return UserModel.findOne({ phone })
+    .select(
+      "+email +phone +password +roles +gender +dob +grade +country +state +city +school +bio +hobbies"
+    )
+    .populate({
+      path: "roles",
+      match: { status: true },
+      select: { code: 1 },
+    })
+    .lean()
+    .exec();
+}
+
 async function findFieldsById(
   id: Types.ObjectId,
   ...fields: string[]
@@ -183,4 +197,5 @@ export default {
   findAllAdmin,
   findByTeleLink,
   updateUser,
+  findByPhoneNumber,
 };

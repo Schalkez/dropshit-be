@@ -73,6 +73,9 @@ const schema = new Schema(
       type: Schema.Types.Boolean,
       default: true,
     },
+    saleDefault: {
+      type: Schema.Types.String,
+    },
     category: {
       type: Schema.Types.ObjectId,
       ref: "Category",
