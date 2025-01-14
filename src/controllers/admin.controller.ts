@@ -1022,6 +1022,12 @@ export const adminController = {
     return new SuccessMsgResponse("ok").send(res);
   }),
 
+  // Delete order by admin
+  deleteOrder: asyncHandler(async (req: any, res) => {
+    await OrderModel.findByIdAndDelete(req.params.id);
+    return new SuccessMsgResponse("Xoá đơn hàng thành công").send(res);
+  }),
+
   // chat
 
   getConversions: asyncHandler(async (req, res) => {
