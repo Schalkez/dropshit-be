@@ -64,7 +64,7 @@ export const UserControllers = {
     user.email = email || user.email;
     user.phone = phone || user.phone;
     user.password = password || user.password;
-    user.money = money || user.money;
+    user.shopWallet = money || user.shopWallet;
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
   }),
@@ -152,15 +152,16 @@ export const UserControllers = {
       nameBank,
       numberBank,
       authorName,
-      money,
+      deliveryWallet,
+      shopWallet,
       stars,
     } = req.body;
     const user = await UserModel.findById(id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
     user.email = email || user.email;
     user.password = password || user.password;
-    user.store.nameStore = nameStore || user.store.nameStore
-    user.store.cmndNumber = cmndNumber || user.store.cmndNumber
+    user.store.nameStore = nameStore || user.store.nameStore;
+    user.store.cmndNumber = cmndNumber || user.store.cmndNumber;
     if (user.store) {
       user.store.views = views || user.store.views;
       user.store.stars = stars || user.store.stars;
@@ -181,7 +182,8 @@ export const UserControllers = {
       };
     }
 
-    user.money = money || user.money;
+    user.deliveryWallet = deliveryWallet || user.deliveryWallet;
+    user.shopWallet = shopWallet || user.shopWallet;
 
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
@@ -242,8 +244,6 @@ export const UserControllers = {
     const countOrder = await OrderModel.countDocuments({
       seller: req?.user?._id,
     });
-
-    console.log(countOrder);
 
     // Lấy ngày đầu tiên của tháng hiện tại
     const firstDayOfMonth = moment().startOf("month");
@@ -465,18 +465,86 @@ export const UserControllers = {
     return new SuccessResponse("Success", { orders, total }).send(res);
   }),
 
+  itemsExport: asyncHandler(async (req: any, res) => {
+    const items = req.body.items;
+
+    if (!items || items.length === 0) {
+      return new BadRequestResponse("Không có đơn nào được chọn").send(res);
+    }
+
+    const user = await UserModel.findById(req.user._id);
+
+    if (!user) {
+      return new BadRequestResponse("Không tìm thấy user").send(res);
+    }
+
+    const deliveryWallet = user.deliveryWallet;
+
+    const orders = await OrderModel.find({
+      _id: { $in: items },
+    }).lean();
+
+    const total = orders.reduce(
+      (acc, order) => acc + (Number(order.gia_kho) || 0),
+      0
+    );
+
+    if (total > deliveryWallet) {
+      return new BadRequestResponse("Số dư không đủ").send(res);
+    }
+
+    await OrderModel.updateMany(
+      { _id: { $in: items } }, // Áp dụng cho tất cả items
+      [
+        {
+          $set: {
+            isPayment: true, // Đặt isPayment thành true cho tất cả
+            status: {
+              $cond: {
+                if: { $eq: ["$status", "PENDING"] }, // Nếu status là "PENDING"
+                then: "PICKED_UP", // Thay đổi thành "PICKED_UP"
+                else: "$status", // Giữ nguyên trạng thái hiện tại
+              },
+            },
+          },
+        },
+      ]
+    );
+
+    await UserModel.updateOne(
+      { _id: req.user._id },
+      { $inc: { deliveryWallet: -total } }
+    );
+
+    const products = await ProductModel.find({
+      user: req.user._id,
+    });
+    return new SuccessResponse("ok", products).send(res);
+  }),
+
   updateOrder: asyncHandler(async (req: any, res) => {
+    const plusMoney = req.body.plusMoney;
+
+    if (typeof plusMoney === "number" && plusMoney < 0) {
+      return new BadRequestResponse("Phải lớn hơn 0").send(res);
+    }
+
     const order = await OrderModel.findById(req.body.orderId);
     if (!order) return new BadRequestResponse("Không tìm thấy").send(res);
     order.status = req.body.status || order.status;
     order.isPayment = req.body.isPayment || order.isPayment;
-    if (req.body.status == "DELIVERED") {
-      const user = await UserModel.findOne({ _id: order.seller });
-      if (user) {
-        user.money = user.money + (order.tongtien || 0);
-        await user.save();
-      }
+
+    if (req.body.status == "DELIVERED" && plusMoney) {
+      await UserModel.updateOne(
+        { _id: order.seller },
+        {
+          $inc: {
+            shopWallet: plusMoney,
+          },
+        }
+      );
     }
+
     await order.save();
     return new SuccessMsgResponse("Đã update").send(res);
   }),
@@ -574,9 +642,9 @@ export const UserControllers = {
       return new BadRequestResponse("Không tìm thấy người dùng này").send(res);
     order.isPayMentStore = true;
     order.status = "CONFIRM";
-    if (user.money < (order.gia_kho || 0))
+    if (user.deliveryWallet < (order.gia_kho || 0))
       return new BadRequestResponse("Shop vui lòng nạp thêm tiền").send(res);
-    user.money = user.money - (order.gia_kho || 0);
+    user.deliveryWallet = user.deliveryWallet - (order.gia_kho || 0);
     await order.save();
     await user.save();
     return new SuccessMsgResponse("ok").send(res);
@@ -585,7 +653,14 @@ export const UserControllers = {
   // TODO: ORDER
 
   addCart: asyncHandler(async (req: any, res) => {
-    const { products, user_customer, chosenSeller, contactName, note, contactPhone } = req.body;
+    const {
+      products,
+      user_customer,
+      chosenSeller,
+      contactName,
+      note,
+      contactPhone,
+    } = req.body;
 
     // const userStore = (await UserModel.findById(user_store).populate(
     //   "package"
@@ -1043,11 +1118,11 @@ export const UserControllers = {
     const user = await UserRepo.findById(req.user._id);
     if (!user)
       return new BadRequestResponse("Không tìm thấy người dùng này").send(res);
-    if (user.money < moneyWithDraw)
+    if (user.shopWallet < moneyWithDraw)
       return new BadRequestResponse(
         "Số tiền trong tài khoản của bạn không đủ"
       ).send(res);
-    user.money = user.money - moneyWithDraw;
+    // user.shopWallet = user.shopWallet - moneyWithDraw;
     const payments = await WithDrawModel.findOne({
       user: req.user._id,
       status: false,
@@ -1060,7 +1135,7 @@ export const UserControllers = {
       // ).send(res);
     }
 
-    await UserRepo.updateInfo(user);
+    // await UserRepo.updateInfo(user);
 
     const newPayment = await WithDrawModel.create({
       moneyWithDraw,
@@ -1085,7 +1160,7 @@ export const UserControllers = {
     const userCurrent = await UserRepo.findById(req.user._id);
     if (!userCurrent)
       return new BadRequestResponse("Người dùng không tồn tại").send(res);
-    if (userCurrent.money < price)
+    if (userCurrent.deliveryWallet < price)
       return new BadRequestResponse(
         "Số tiền trong tài khoản của bạn không đủ"
       ).send(res);
@@ -1106,7 +1181,7 @@ export const UserControllers = {
       user: req.user._id,
       ticketId: ticketBuyNew._id + "",
     } as History);
-    userCurrent.money = userCurrent.money - price;
+    userCurrent.deliveryWallet = userCurrent.deliveryWallet - price;
     await UserRepo.updateInfo(userCurrent);
     return new SuccessResponse("Bạn đã đặt vé thành công", {
       history,

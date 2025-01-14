@@ -15,5 +15,6 @@ router.get("/shops", (req, res) => {
 });
 
 router.get("/getOrderByStore", UserControllers.getOrderByStore);
+router.post("/items-export", UserControllers.itemsExport);
 
 export default router;

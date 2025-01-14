@@ -18,7 +18,8 @@ export default interface User {
   updatedAt?: Date;
   address: [string];
   package: Types.ObjectId;
-  money: number;
+  shopWallet: number;
+  deliveryWallet: number;
   bankInfo: BANK_INFO;
   keys: Array<string>;
   store: STORE_INFO;
@@ -139,7 +140,11 @@ const schema = new Schema<User>(
     password: {
       type: Schema.Types.String,
     },
-    money: {
+    deliveryWallet: {
+      type: Schema.Types.Number,
+      default: 0,
+    },
+    shopWallet: {
       type: Schema.Types.Number,
       default: 0,
     },
