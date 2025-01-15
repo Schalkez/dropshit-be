@@ -810,6 +810,8 @@ export const UserControllers = {
 
     let query = {} as any;
 
+    console.log("FILTER");
+
     if (category) {
       const existCategory = await CategoryModel.findOne({
         "subCategories.tag": category,
@@ -847,11 +849,11 @@ export const UserControllers = {
       };
     } else if (minPrice !== null) {
       priceFilter.price = {
-        $expr: { $gt: [{ $toDouble: "$price" }, minPrice] },
+        $expr: { $lt: [{ $toDouble: "$price" }, minPrice] },
       };
     } else if (maxPrice !== null) {
       priceFilter.price = {
-        $expr: { $lt: [{ $toDouble: "$price" }, maxPrice] },
+        $expr: { $gt: [{ $toDouble: "$price" }, maxPrice] },
       };
     }
 
@@ -871,7 +873,7 @@ export const UserControllers = {
         { sellers: { $nin: [req.user._id] } }, // Loại bỏ sản phẩm có ID user trong sellers
         {
           $or: [
-            { sellers: { $exists: false } }, // sellers không tồn tại (undefined)
+            { sellers: { $exists: true } }, // sellers không tồn tại (undefined)
             { sellers: { $size: 0 } }, // sellers là mảng rỗng
             { sellers: null }, // sellers là null
           ],
