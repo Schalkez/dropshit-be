@@ -1,6 +1,8 @@
-FROM node:14
+FROM node:22
 
 WORKDIR /app
+
+RUN rm -rf /path/to/temporary/files
 
 COPY package*.json ./
 
