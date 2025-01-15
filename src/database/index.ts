@@ -6,7 +6,7 @@ import { db } from "../config";
 const MONGO_URI =
   `${process.env.MONGO_URI}/${db.name}` ||
   `mongodb://localhost:27017/${db.name}`;
-`mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
+// `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
 
 console.log(MONGO_URI);
 
