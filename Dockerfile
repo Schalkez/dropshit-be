@@ -15,4 +15,4 @@ RUN npm run build
 
 EXPOSE 7070
 
-CMD ["pm2-runtime", "start", "server.js"]
+CMD ["pm2-runtime", "start", "./build/server.js"]
