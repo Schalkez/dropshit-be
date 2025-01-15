@@ -46,9 +46,13 @@ function makeid(length: number) {
 
 export const AuthControllers = {
   getProductsNews: asyncHandler(async (req: RoleRequest, res) => {
-    const products = await ProductModel.find()
+    const products = await ProductModel.find({
+      sellers: { $exists: true, $ne: [] },
+    })
       .limit(10)
       .sort({ createdAt: -1 });
+
+    console.log("QUÁ OK");
     return new SuccessResponse("ok", products).send(res);
   }),
   getProductsFeature: asyncHandler(async (req: RoleRequest, res) => {
@@ -56,10 +60,7 @@ export const AuthControllers = {
       {
         $match: {
           isProductFeature: true,
-          $or: [
-            { sellers: { $ne: null } }, // sellers không phải null
-            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
-          ],
+          $and: [{ sellers: { $ne: null } }, { sellers: { $ne: [] } }],
         },
       },
       { $sample: { size: 10 } }, // Randomly select 10 products
@@ -72,12 +73,12 @@ export const AuthControllers = {
       {
         $match: {
           isBestSelling: true,
-          $or: [
+          $and: [
             { sellers: { $ne: null } }, // sellers không phải null
             { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
           ],
         },
-      }, // Lọc các sản phẩm bán chạy và có sellers không null
+      },
       { $sample: { size: 10 } }, // Chọn ngẫu nhiên 10 sản phẩm
     ]);
 

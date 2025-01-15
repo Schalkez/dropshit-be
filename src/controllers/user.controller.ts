@@ -393,8 +393,9 @@ export const UserControllers = {
   }),
   getProductsByStore: asyncHandler(async (req: any, res) => {
     const products = await ProductModel.find({
-      user: req.params.user,
+      sellers: req.params.user,
     });
+
     return new SuccessResponse("ok", products).send(res);
   }),
   getShopDetail: asyncHandler(async (req: any, res) => {

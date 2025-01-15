@@ -161,6 +161,7 @@ export const adminController = {
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
+      sellers: { $exists: true, $ne: [] },
     });
 
     const products = await ProductModel.find({
@@ -168,6 +169,7 @@ export const adminController = {
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
+      sellers: { $exists: true, $ne: [] },
     })
       .populate("branch")
       .populate("category")
