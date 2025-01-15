@@ -90,10 +90,18 @@ export const AuthControllers = {
     try {
       // Tìm user bằng email
       const user = await UserRepo.findByPhone(req.body.email);
-      console.log(user);
+
+      // Tạo token
+      const accessTokenKey = crypto.randomBytes(64).toString("hex");
+      const refreshTokenKey = crypto.randomBytes(64).toString("hex");
 
       if (user?.roles?.find((r) => r.code === "CUSTOMER")) {
         // Lấy thông tin role CUSTOMER và SELLER từ RoleModel
+
+        if (req.body.roleCode === "CUSTOMER") {
+          return new BadRequestResponse("Email đà tồn tại").send(res);
+        }
+
         const customerRole = await RoleModel.findOne({ code: "CUSTOMER" });
         const sellerRole = await RoleModel.findOne({ code: "SELLER" });
 
@@ -114,11 +122,18 @@ export const AuthControllers = {
           { email: req.body.email },
           { $addToSet: { roles: sellerRole._id } }
         );
+
+        // Trả về phản hồi
+        new SuccessResponse("Chúc mừng quý khách đã mở cửa hàng", {
+          user,
+          tokens: accessTokenKey,
+        }).send(res);
+        return;
       }
 
-      // Tạo token
-      const accessTokenKey = crypto.randomBytes(64).toString("hex");
-      const refreshTokenKey = crypto.randomBytes(64).toString("hex");
+      if (user) {
+        return new BadRequestResponse("Email đà tồn tại").send(res);
+      }
 
       let packageC;
       if (req.body.roleCode === "SELLER") {

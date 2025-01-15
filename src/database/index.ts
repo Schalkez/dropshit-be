@@ -3,9 +3,10 @@ import { db } from "../config";
 
 // Build the connection string
 // const dbURI = `mongodb://${db.host}:${db.port}/${db.name}`;
-const dbURI = `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
+const MONGO_URI = `mongodb://localhost:27017/${db.name}`;
+// `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
 
-console.log(dbURI);
+console.log(MONGO_URI);
 
 const options: mongoose.ConnectOptions = {
   autoIndex: true,
@@ -27,7 +28,7 @@ mongoose
     schema.pre("updateOne", setRunValidators);
     schema.pre("update", setRunValidators);
   })
-  .connect(dbURI, options)
+  .connect(MONGO_URI, options)
   .then(() => {
     console.log("Mongoose connection done");
   })
@@ -38,7 +39,7 @@ mongoose
 // CONNECTION EVENTS
 // When successfully connected
 mongoose.connection.on("connected", () => {
-  console.log("Mongoose default connection open to " + dbURI);
+  console.log("Mongoose default connection open to " + MONGO_URI);
 });
 
 mongoose.connection.on("error", (err) => {

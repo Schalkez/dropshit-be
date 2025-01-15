@@ -41,6 +41,15 @@ const schema = new Schema(
       type: Schema.Types.String,
       default: "PENDING",
     },
+    contactName: {
+      type: Schema.Types.String,
+    },
+    note: {
+      type: Schema.Types.String,
+    },
+    contactPhone: {
+      type: Schema.Types.String,
+    },
   },
   {
     timestamps: true,

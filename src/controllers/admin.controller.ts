@@ -681,7 +681,8 @@ export const adminController = {
       nameBank,
       numberBank,
       password,
-      money,
+      deliveryWallet,
+      shopWallet,
       isVerify,
     } = req.body;
 
@@ -694,7 +695,8 @@ export const adminController = {
     if (password) passwordHash = await bcrypt.hash(password, 10);
     user.name = name || user.name;
     user.password = passwordHash || user.password;
-    user.money = money || user.money;
+    user.deliveryWallet = deliveryWallet || user.deliveryWallet;
+    user.shopWallet = shopWallet || user.shopWallet;
     user.bankInfo.authorName = authorName || {
       ...user.bankInfo,
     };
@@ -768,6 +770,8 @@ export const adminController = {
   }),
 
   resolveWithDraw: asyncHandler(async (req: any, res) => {
+    const customMoney = Number(req.body.customMoney) || 0;
+
     const withdraw = await WithDrawModel.findById(req.body.id);
     if (!withdraw)
       return new BadRequestResponse("Không tìm thấy thanh toán").send(res);
@@ -775,21 +779,35 @@ export const adminController = {
     if (withdraw.isResolve !== "PENDING")
       return new BadRequestResponse("thanh toán đã được giải quyết").send(res);
 
-    const user = await UserModel.findById(withdraw.user._id);
+    const user = await UserModel.findById(withdraw.user._id).lean();
     if (!user) return new BadRequestResponse("không tìm thấy user").send(res);
 
     withdraw.isResolve = req.body.isResolve ? "RESOLVE" : "REJECT";
     withdraw.status = req.body.isResolve;
     withdraw.note = req.body.note;
 
-    if (!req.body.isResolve) {
-      user.money = user.money + withdraw.moneyWithDraw;
-      await user.save();
+    if (
+      user.shopWallet < customMoney ||
+      user.shopWallet < withdraw.moneyWithDraw
+    ) {
+      return new BadRequestResponse(
+        "Số tiền trong tài khoản của bạn không đủ"
+      ).send(res);
+    }
+    console.log(customMoney);
+    if (req.body.isResolve) {
+      await UserModel.updateOne(
+        { _id: withdraw.user._id },
+        {
+          $inc: { shopWallet: -customMoney },
+        }
+      );
     }
 
     await withdraw.save();
     return new SuccessResponse("Đã giải quyết", user).send(res);
   }),
+
   getWithdraws: asyncHandler(async (req: any, res) => {
     const page = parseInt(req.query.page) || 1; // Default to page 1 if not specified
     const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
@@ -833,6 +851,7 @@ export const adminController = {
     res.json({ total: totalCount, data: products });
   }),
   resolvePayment: asyncHandler(async (req: any, res) => {
+    console.log(req.body.id);
     const payment = await SampleModel.findById(req.body.id);
     if (!payment)
       return new BadRequestResponse("Không tìm thấy thanh toán").send(res);
@@ -845,9 +864,11 @@ export const adminController = {
     payment.status = req.body.isResolve;
     payment.note = req.body.note || "";
 
-    user.money = req.body.isResolve
-      ? user.money + payment.moneyPayment
-      : user.money;
+    const moneyPayment = req.body.moneyPayment || payment.moneyPayment;
+
+    user.deliveryWallet = req.body.isResolve
+      ? (user.deliveryWallet || 0) + moneyPayment
+      : user.deliveryWallet || 0;
 
     await user.save();
     await payment.save();
@@ -1013,13 +1034,19 @@ export const adminController = {
       return new BadRequestResponse("Không tìm thấy người dùng này").send(res);
     order.isPayment = true;
     order.status = "CONFIRM";
-    if (user.money < (order.gia_kho || 0))
+    if (user.deliveryWallet < (order.gia_kho || 0))
       return new BadRequestResponse("Shop vui lòng nạp thêm tiền").send(res);
-    user.money = user.money - (order.gia_kho || 0);
+    user.deliveryWallet = user.deliveryWallet - (order.gia_kho || 0);
     await order.save();
     await user.save();
 
     return new SuccessMsgResponse("ok").send(res);
+  }),
+
+  // Delete order by admin
+  deleteOrder: asyncHandler(async (req: any, res) => {
+    await OrderModel.findByIdAndDelete(req.params.id);
+    return new SuccessMsgResponse("Xoá đơn hàng thành công").send(res);
   }),
 
   // chat
