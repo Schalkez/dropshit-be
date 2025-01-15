@@ -1,14 +1,8 @@
-version: "3.8"
+version: '3'
+
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
+  dropshit-be:
+    image: dtopshit-be
     ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-volumes:
-  mongodb_data:
+      - "7070:7070"
+    container_name: dropshit-be
