@@ -158,10 +158,23 @@ export const UserControllers = {
     } = req.body;
     const user = await UserModel.findById(id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
-    user.email = email || user.email;
-    user.password = password || user.password;
-    user.store.nameStore = nameStore || user.store.nameStore;
-    user.store.cmndNumber = cmndNumber || user.store.cmndNumber;
+
+    if (email) {
+      user.email = email;
+    }
+
+    if (password) {
+      user.password = password;
+    }
+
+    if (nameStore) {
+      user.store.nameStore = nameStore;
+    }
+
+    if (cmndNumber) {
+      user.store.cmndNumber = cmndNumber;
+    }
+
     if (user.store) {
       user.store.views = views || user.store.views;
       user.store.stars = stars || user.store.stars;
