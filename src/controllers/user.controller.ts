@@ -155,14 +155,32 @@ export const UserControllers = {
       authorName,
       deliveryWallet,
       shopWallet,
+      packageId,
       stars,
     } = req.body;
     const user = await UserModel.findById(id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
-    user.email = email || user.email;
-    user.password = password || user.password;
-    user.store.nameStore = nameStore || user.store.nameStore;
-    user.store.cmndNumber = cmndNumber || user.store.cmndNumber;
+
+    if (email) {
+      user.email = email;
+    }
+
+    if (password) {
+      user.password = password;
+    }
+
+    if (nameStore) {
+      user.store.nameStore = nameStore;
+    }
+
+    if (cmndNumber) {
+      user.store.cmndNumber = cmndNumber;
+    }
+
+    if (packageId) {
+      user.store.packageId = packageId;
+    }
+
     if (user.store) {
       user.store.views = views || user.store.views;
       user.store.stars = stars || user.store.stars;
@@ -745,6 +763,7 @@ export const UserControllers = {
       logoStore,
       isApplyOnce,
       email,
+      packageId,
       cmndNumber,
     } = req.body;
     const user = await UserModel.findById(req.user._id);
@@ -752,6 +771,7 @@ export const UserControllers = {
     user.store = {
       address,
       cmndNumber,
+      packageId,
       email,
       isApplyOnce,
       cmnd: {
@@ -776,6 +796,7 @@ export const UserControllers = {
       cmnd_after,
       cmndNumber,
       isApplyOnce,
+      packageId,
       email,
     } = req.body;
 
@@ -786,6 +807,7 @@ export const UserControllers = {
       cmndNumber,
       address,
       isApplyOnce,
+      packageId,
       cmnd: {
         after: cmnd_after,
         before: cmnd_before,
