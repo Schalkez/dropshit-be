@@ -100,7 +100,6 @@ export const adminController = {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const wishlistUser = parseInt(req.query.wishlistUser);
-    // const userId = "651ed18ed3c656cabc057998";
 
     const sellerEmail = req.query.sellerEmail;
 
@@ -157,12 +156,20 @@ export const adminController = {
       }).select("_id");
     }
 
+    const filters: any = {};
+
+    const isAdmin = req.user?.role === "ADMIN";
+
+    if (isAdmin) {
+      filters.sellers = { $exists: true, $ne: [] };
+    }
+
     const totalCount = await ProductModel.countDocuments({
       ...priceFilter,
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
-      sellers: { $exists: true, $ne: [] },
+      ...filters,
     });
 
     const products = await ProductModel.find({
@@ -170,7 +177,7 @@ export const adminController = {
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
-      sellers: { $exists: true, $ne: [] },
+      ...filters,
     })
       .populate("branch")
       .populate("category")

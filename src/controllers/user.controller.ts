@@ -345,6 +345,8 @@ export const UserControllers = {
       totalRevenue += item.tongtien || 0;
     });
 
+    const user = await UserModel.findById(req?.user?._id).lean();
+
     return new SuccessResponse("ok", {
       countOrderNEW,
       countOrder,
@@ -357,6 +359,7 @@ export const UserControllers = {
       totalRevenueLastMonth,
       totalRevenueCurrentMonth,
       needResolveOrdersTotalPrice,
+      package: user?.store.packageId,
     }).send(res);
   }),
   addMessage: asyncHandler(async (req: any, res) => {
