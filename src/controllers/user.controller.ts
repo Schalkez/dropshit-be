@@ -154,6 +154,7 @@ export const UserControllers = {
       authorName,
       deliveryWallet,
       shopWallet,
+      packageId,
       stars,
     } = req.body;
     const user = await UserModel.findById(id);
@@ -173,6 +174,10 @@ export const UserControllers = {
 
     if (cmndNumber) {
       user.store.cmndNumber = cmndNumber;
+    }
+
+    if (packageId) {
+      user.store.packageId = packageId;
     }
 
     if (user.store) {
@@ -757,6 +762,7 @@ export const UserControllers = {
       logoStore,
       isApplyOnce,
       email,
+      packageId,
       cmndNumber,
     } = req.body;
     const user = await UserModel.findById(req.user._id);
@@ -764,6 +770,7 @@ export const UserControllers = {
     user.store = {
       address,
       cmndNumber,
+      packageId,
       email,
       isApplyOnce,
       cmnd: {
@@ -788,6 +795,7 @@ export const UserControllers = {
       cmnd_after,
       cmndNumber,
       isApplyOnce,
+      packageId,
       email,
     } = req.body;
 
@@ -798,6 +806,7 @@ export const UserControllers = {
       cmndNumber,
       address,
       isApplyOnce,
+      packageId,
       cmnd: {
         after: cmnd_after,
         before: cmnd_before,

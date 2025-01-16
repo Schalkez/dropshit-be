@@ -36,6 +36,7 @@ export interface STORE_INFO {
   logoStore: string;
   phone: string;
   address: string;
+  packageId: string;
   views: number;
   isApplyOnce: boolean;
   isVerify: string;
@@ -95,6 +96,7 @@ const schema = new Schema<User>(
         address: Schema.Types.String,
         logoStore: Schema.Types.String,
         phone: Schema.Types.String,
+        packageId: Schema.Types.String,
         cmndNumber: Schema.Types.String,
         email: Schema.Types.String,
         views: Schema.Types.Number,
