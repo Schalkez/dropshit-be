@@ -21,10 +21,11 @@ import { PackageModel } from "../database/model/Package";
 import { MethodPaymentModel } from "../database/model/MethodPayment";
 import { ConfigModel } from "../database/model/Config";
 import { categoryErrors } from "../constants/errors/category.error";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { productErrors } from "../constants/errors/product.error";
 import Conservation from "../database/model/Conservation";
 import { OrderModel } from "../database/model/Order";
+import { SettingModel } from "../database/model/Setting";
 
 function makeid(length: number) {
   let result = "";
@@ -1066,6 +1067,83 @@ export const adminController = {
       const conversions = await Conservation.find({ user: adminId });
 
       res.json(conversions);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
+  }),
+
+  // Setting
+  getSettingByType: asyncHandler(async (req, res) => {
+    try {
+      const type = req.query.type;
+
+      const setting = await SettingModel.find({ type }).populate({
+        path: "userId",
+      });
+
+      return res.json(setting);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
+  }),
+
+  createSetting: asyncHandler(async (req, res) => {
+    try {
+      const existSetting = await SettingModel.findOne({
+        type: req.body.type,
+        userId: new Types.ObjectId(req.body.userId),
+      });
+
+      if (existSetting) {
+        await SettingModel.findByIdAndUpdate(existSetting._id, req.body);
+        return new SuccessMsgResponse("ok").send(res);
+      }
+
+      const setting = new SettingModel({
+        ...req.body,
+        userId: new Types.ObjectId(req.body.userId),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await setting.save();
+
+      return new SuccessMsgResponse("ok").send(res);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
+  }),
+
+  updateSetting: asyncHandler(async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const setting = await SettingModel.findById(id);
+      if (!setting) {
+        return new BadRequestResponse("SOMETHING_ERROR").send(res);
+      }
+
+      await SettingModel.findByIdAndUpdate(id, req.body);
+      return new SuccessMsgResponse("ok").send(res);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_ERROR").send(res);
+    }
+  }),
+
+  deleteSetting: asyncHandler(async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      console.log(id, "id");
+
+      const setting = await SettingModel.findById(id);
+      console.log(setting, "setting");
+      if (!setting) {
+        return new BadRequestResponse("SOMETHING_ERROR").send(res);
+      }
+
+      await SettingModel.findByIdAndDelete(id, req.body);
+      return new SuccessMsgResponse("ok").send(res);
     } catch (error) {
       return new BadRequestResponse("SOMETHING_ERROR").send(res);
     }

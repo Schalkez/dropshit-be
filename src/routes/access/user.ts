@@ -76,4 +76,6 @@ router.get("/getConservationStore/:id", UserControllers.getConservationStore);
 
 router.get("/getOrderNotPayment", UserControllers.getOrderNotPayment);
 
+router.get("/setting", UserControllers.getSettingByType);
+
 export default router;

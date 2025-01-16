@@ -91,4 +91,11 @@ router.post("/updateEmploy", UserControllers.updateEmploy);
 
 // Chat
 router.get("/conversions/admin/:id", adminController.getConversions);
+
+// Setting
+router.get("/setting", adminController.getSettingByType);
+router.post("/setting", adminController.createSetting);
+router.put("/setting/:id", adminController.updateSetting);
+router.delete("/setting/:id", adminController.deleteSetting);
+
 export default router;
