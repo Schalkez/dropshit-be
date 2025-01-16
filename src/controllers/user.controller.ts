@@ -26,8 +26,9 @@ import { MessageModel } from "../database/model/Message";
 import { RoomModel } from "../database/model/Room";
 import moment from "moment";
 import Conservation from "../database/model/Conservation";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { CategoryModel } from "../database/model/Category";
+import { SettingModel } from "../database/model/Setting";
 
 import { Socket } from "socket.io";
 
@@ -1272,6 +1273,20 @@ export const UserControllers = {
       withdraws: data,
       total,
     }).send(res);
+  }),
+
+  // Setting
+  getSettingByType: asyncHandler(async (req: ProtectedRequest, res) => {
+    try {
+      const setting = await SettingModel.findOne({
+        type: req.query.type,
+        userId: req.user._id,
+      });
+
+      return new SuccessResponse("Thành công", setting).send(res);
+    } catch (error) {
+      return new BadRequestResponse("SOMETHING_WENT_WRONG").send(res);
+    }
   }),
 };
 

@@ -3,7 +3,7 @@ import { db } from "../config";
 
 // Build the connection string
 // const dbURI = `mongodb://${db.host}:${db.port}/${db.name}`;
-const MONGO_URI = `mongodb://localhost:27017/${db.name}`;
+const MONGO_URI = `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
 // `mongodb+srv://mynameishieenf:root@dropshit.hieq8.mongodb.net/${db.name}`;
 
 console.log(MONGO_URI);
