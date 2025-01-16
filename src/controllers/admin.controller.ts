@@ -156,20 +156,11 @@ export const adminController = {
       }).select("_id");
     }
 
-    const filters: any = {};
-
-    const isAdmin = req.user?.role === "ADMIN";
-
-    if (isAdmin) {
-      filters.sellers = { $exists: true, $ne: [] };
-    }
-
     const totalCount = await ProductModel.countDocuments({
       ...priceFilter,
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
-      ...filters,
     });
 
     const products = await ProductModel.find({
@@ -177,7 +168,6 @@ export const adminController = {
       ...sellerFilter,
       ...categoryFilter,
       ...branchFilter,
-      ...filters,
     })
       .populate("branch")
       .populate("category")
