@@ -31,6 +31,7 @@ import { CategoryModel } from "../database/model/Category";
 import { SettingModel } from "../database/model/Setting";
 
 import { Socket } from "socket.io";
+import dayjs from "dayjs";
 
 export const UserControllers = {
   getHisDeposit: asyncHandler(async (req: any, res) => {
@@ -178,7 +179,10 @@ export const UserControllers = {
     }
 
     if (packageId) {
-      user.store.packageId = packageId;
+      user.store.package = {
+        name: packageId,
+        createdAt: dayjs().toISOString(),
+      };
     }
 
     if (user.store) {
@@ -359,7 +363,7 @@ export const UserControllers = {
       totalRevenueLastMonth,
       totalRevenueCurrentMonth,
       needResolveOrdersTotalPrice,
-      package: user?.store.packageId,
+      package: user?.store.package,
     }).send(res);
   }),
   addMessage: asyncHandler(async (req: any, res) => {
@@ -774,7 +778,7 @@ export const UserControllers = {
     user.store = {
       address,
       cmndNumber,
-      packageId,
+      package: { name: packageId, createdAt: dayjs().toISOString() },
       email,
       isApplyOnce,
       cmnd: {
@@ -810,7 +814,7 @@ export const UserControllers = {
       cmndNumber,
       address,
       isApplyOnce,
-      packageId,
+      package: { name: packageId, createdAt: dayjs().toISOString() },
       cmnd: {
         after: cmnd_after,
         before: cmnd_before,

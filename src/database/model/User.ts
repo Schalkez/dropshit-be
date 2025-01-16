@@ -30,13 +30,18 @@ export default interface User {
   productQuantity: number;
 }
 
+export interface IPackage {
+  name: string;
+  createdAt: string;
+}
+
 export interface STORE_INFO {
   nameStore: string;
   stars?: number;
   logoStore: string;
   phone: string;
   address: string;
-  packageId: string;
+  package: IPackage;
   views: number;
   isApplyOnce: boolean;
   isVerify: string;
@@ -96,7 +101,7 @@ const schema = new Schema<User>(
         address: Schema.Types.String,
         logoStore: Schema.Types.String,
         phone: Schema.Types.String,
-        packageId: Schema.Types.String,
+        package: { name: Schema.Types.String, createdAt: Schema.Types.String },
         cmndNumber: Schema.Types.String,
         email: Schema.Types.String,
         views: Schema.Types.Number,
