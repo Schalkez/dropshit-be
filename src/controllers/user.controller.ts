@@ -159,6 +159,7 @@ export const UserControllers = {
       packageId,
       stars,
     } = req.body;
+
     const user = await UserModel.findById(id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
 
