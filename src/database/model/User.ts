@@ -8,7 +8,6 @@ export default interface User {
   _id: Types.ObjectId;
   name?: string;
   email?: string;
-  profilePicUrl?: string;
   phone?: string;
   password?: string;
   roles?: Role[];
@@ -28,6 +27,7 @@ export default interface User {
   isCustomerVirtual: boolean;
   creditScore: number;
   productQuantity: number;
+  avatar?: string;
 }
 
 export interface IPackage {
@@ -68,6 +68,10 @@ const schema = new Schema<User>(
       trim: true,
       maxlength: 200,
     },
+    avatar: {
+      type: Schema.Types.String,
+      trim: true,
+    },
     package: {
       type: Schema.Types.ObjectId,
       ref: "Package",
@@ -89,10 +93,6 @@ const schema = new Schema<User>(
     },
     creditScore: {
       type: Schema.Types.Number,
-      trim: true,
-    },
-    profilePicUrl: {
-      type: Schema.Types.String,
       trim: true,
     },
     store: {

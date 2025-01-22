@@ -158,10 +158,15 @@ export const UserControllers = {
       shopWallet,
       packageId,
       stars,
+      avatar,
     } = req.body;
 
     const user = await UserModel.findById(id);
     if (!user) return new BadRequestResponse("Không tìm thấy user").send(res);
+
+    if (avatar) {
+      user.avatar = avatar;
+    }
 
     if (email) {
       user.email = email;
