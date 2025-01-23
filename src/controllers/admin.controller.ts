@@ -105,13 +105,13 @@ export const adminController = {
 
     const branch = req.query.branch;
 
-    const categorySlug = req.query.categorySlug;
-    const subCategorySlug = req.query.subCategorySlug;
+    const categorySlug = req.query.category;
+    const subCategorySlug = req.query.subCategory;
 
     let categoryFilter = {};
     if (categorySlug) {
       const category = await CategoryModel.findOne({
-        slug: categorySlug,
+        _id: categorySlug,
       }).select("_id");
 
       categoryFilter = { category: category?._id };
@@ -179,25 +179,19 @@ export const adminController = {
 
     products.map((product) => {
       const category: any = product.category;
-      const subCate = category?.subCategories?.find((x: any) => {
-        return x._id?.toString() === product?.subCategory?.toString();
-      });
-
+      const subCate = category?.subCategories?.find((x: any) => 
+        x._id?.toString() === product?.subCategory?._id?.toString()
+      );
       product.subCategory = subCate;
-
       return product;
     });
 
     let result: any = [];
+
     if (subCategorySlug) {
       result = products.filter((product) => {
-        const subCategories: any = product.subCategory;
-
-        for (let subCategory of subCategories) {
-          if (subCategory.slug === subCategorySlug) {
-            return product;
-          }
-        }
+        const subCategory = product.subCategory;
+        return subCategory?._id?.toString() === subCategorySlug;
       });
     } else {
       result = products;
