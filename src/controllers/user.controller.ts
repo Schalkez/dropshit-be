@@ -147,6 +147,7 @@ export const UserControllers = {
     const {
       id,
       nameStore,
+      logoStore,
       cmndNumber,
       email,
       password,
@@ -178,6 +179,10 @@ export const UserControllers = {
 
     if (nameStore) {
       user.store.nameStore = nameStore;
+    }
+
+    if (logoStore) {
+      user.store.logoStore = logoStore;
     }
 
     if (cmndNumber) {
