@@ -154,6 +154,7 @@ export const UserControllers = {
       views,
       nameBank,
       numberBank,
+      address,
       authorName,
       deliveryWallet,
       shopWallet,
@@ -175,6 +176,10 @@ export const UserControllers = {
 
     if (password) {
       user.password = password;
+    }
+
+    if (address) {
+      user.address = address;
     }
 
     if (nameStore) {
