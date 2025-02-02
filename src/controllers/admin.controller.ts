@@ -179,8 +179,8 @@ export const adminController = {
 
     products.map((product) => {
       const category: any = product.category;
-      const subCate = category?.subCategories?.find((x: any) => 
-        x._id?.toString() === product?.subCategory?._id?.toString()
+      const subCate = category?.subCategories?.find(
+        (x: any) => x._id?.toString() === product?.subCategory?._id?.toString()
       );
       product.subCategory = subCate;
       return product;
@@ -623,8 +623,6 @@ export const adminController = {
     });
 
     let searchFilter = {
-      // email: { $ne: "admin@123.com" },
-
       $or: [
         { name: { $regex: searchQuery, $options: "i" } },
         { email: { $regex: searchQuery, $options: "i" } },
@@ -638,12 +636,12 @@ export const adminController = {
     }
 
     const totalCount = await UserModel.countDocuments(searchFilter);
-    const products = await UserModel.find(searchFilter)
+    const users = await UserModel.find(searchFilter)
       .populate("roles")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
-    res.json({ total: totalCount, data: products });
+    res.json({ total: totalCount, data: users });
   }),
   deletebank: asyncHandler(async (req: any, res) => {
     await BanInfoModel.findByIdAndDelete(req.params.id);
