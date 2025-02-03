@@ -60,7 +60,7 @@ export const AuthControllers = {
       {
         $match: {
           isProductFeature: true,
-          $and: [{ sellers: { $ne: null } }, { sellers: { $ne: [] } }],
+          // $and: [{ sellers: { $ne: null } }, { sellers: { $ne: [] } }],
         },
       },
       { $sample: { size: 10 } }, // Randomly select 10 products
@@ -73,10 +73,10 @@ export const AuthControllers = {
       {
         $match: {
           isBestSelling: true,
-          $and: [
-            { sellers: { $ne: null } }, // sellers không phải null
-            { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
-          ],
+          // $and: [
+          //   { sellers: { $ne: null } }, // sellers không phải null
+          //   { sellers: { $ne: [] } }, // sellers không phải mảng rỗng
+          // ],
         },
       },
       { $sample: { size: 10 } }, // Chọn ngẫu nhiên 10 sản phẩm

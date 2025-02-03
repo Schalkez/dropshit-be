@@ -379,7 +379,7 @@ export const UserControllers = {
       totalRevenueLastMonth,
       totalRevenueCurrentMonth,
       needResolveOrdersTotalPrice,
-      package: user?.store.package,
+      package: user?.store?.package,
     }).send(res);
   }),
   addMessage: asyncHandler(async (req: any, res) => {

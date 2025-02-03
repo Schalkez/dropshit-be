@@ -25,7 +25,8 @@ export const UploadController = {
       const result = await new Promise<any>((resolve, reject) => {
         cloudinary.uploader.upload(
           path,
-          { upload_preset: "kyu77xbt", resource_type: "auto" },
+          { format: "webp", access_mode: "public" },
+          // { upload_preset: "kyu77xbt", resource_type: "auto" },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
